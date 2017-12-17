@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1257ae20-a494-4c02-8275-f1a3eeaf7eda}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>__init__.py</StartupFile>
+    <SearchPath>C:\Program Files\Autodesk\Maya2017\Python\Lib\site-packages\;C:\Program Files\Autodesk\Maya2017\devkit\other\pymel\extras\completion\py\maya\;C:\Program Files\Autodesk\Maya2017\Python\Lib\site-packages\pymel\core\;C:\Program Files\Autodesk\Maya2017\lib\;C:\Program Files\Autodesk\Maya2017\devkit\other\pymel\extras\completion\py\</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|PythonCore|2.7</InterpreterId>
+    <IsWindowsApplication>False</IsWindowsApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="grbg\build_RIG.py" />
+    <Compile Include="grbg\build_RIG_02.py" />
+    <Compile Include="grbg\build_RIG_03.py" />
+    <Compile Include="grbg\build_RIG_04.py" />
+    <Compile Include="grbg\build_RIG_05.py" />
+    <Compile Include="interop\utils\build_fk_ctrls.py" />
+    <Compile Include="interop\utils\HS_Funcs.py" />
+    <Compile Include="interop\utils\__init__.py" />
+    <Compile Include="interop\__init__.py" />
+    <Compile Include="project\HS_Build_RIG.py" />
+    <Compile Include="project\HS_Clean.py" />
+    <Compile Include="project\HS_Consts.py" />
+    <Compile Include="project\HS_FK.py" />
+    <Compile Include="project\HS_IK.py" />
+    <Compile Include="project\HS_Match_IKFK.py" />
+    <Compile Include="project\HS_Shapes.py" />
+    <Compile Include="project\__init__.py" />
+    <Compile Include="wip\constraint_switch.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="grbg" />
+    <Folder Include="interop" />
+    <Folder Include="interop\utils" />
+    <Folder Include="project" />
+    <Folder Include="wip" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|2.7" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
