@@ -7,11 +7,10 @@ def create_window():
     return win
 
 
-app = QtWidgets.QApplication(sys.argv)
+app = QtWidgets.QApplication.instance()
 win = create_window()
 win.show()
 app.exec_()
+
 if __name__ == '__main__':
     pass
-
-print 'this'
