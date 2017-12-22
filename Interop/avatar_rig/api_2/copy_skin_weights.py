@@ -18,6 +18,7 @@ def get_skin_data(mesh):
     cluster_node = sel_list.getDependNode(0)
     skin_fn = OpenMayaAnim.MFnSkinCluster(cluster_node)
     inf_dags = skin_fn.influenceObjects()
+    """checking the update"""
 
 
 get_skin_data(pymel.ls('pSphere1')[0])
