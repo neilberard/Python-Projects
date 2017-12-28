@@ -12,9 +12,6 @@ def get_mesh(mesh_name, return_type):
     selection_list.add(mesh_name)
     dag_path = selection_list.getDagPath(0)
 
-    if dag_path is None:
-        return None
-
     if return_type == 'mesh':
         mesh = om2.MFnMesh(dag_path)
         return mesh

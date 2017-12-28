@@ -4,7 +4,7 @@ import pymel.core as pm
 import HS_Consts as cn
 
 
-def make_cube_ctrl(name,size,offset):
+def make_cube_ctrl(name, size, offset):
 
     pos = [(-1, 1, 1),(-1, 1, -1),(1, 1, -1),(1, 1, 1),(-1, 1, 1),(-1, -1, 1),(-1, -1, -1), 
     (-1, 1, -1),(1, 1, -1),(1, -1, -1),( -1, -1, -1),(-1, -1, 1),(1, -1, 1),(1, 1, 1),(1, -1, 1),(1, -1, -1)]
@@ -14,7 +14,7 @@ def make_cube_ctrl(name,size,offset):
     return ctrl
 
     
-def make_ik_fk_swich_ctrl(name,size,offset):
+def make_ik_fk_swich_ctrl(name, size, offset):
 
     pos = [(-9.088573, 11.596919, 0 ),( -9.088573, 18.149395, 0 ),( -8.178507, 18.149395, 0 ),( -8.178507, 11.596919, 0 ),( -9.088573, 11.596919, 0 ),( -6.449382, 11.596919, 0 ),( -6.449382, 18.149395, 0),     
     ( -5.539316, 18.149395, 0 ),( -5.539316, 14.917238, 0 ),( -5.539316, 11.596919, 0 ),( -6.449382, 11.596919, 0 ),( -5.539316, 11.596919, 0 ),( -5.539316, 14.925771, 0 ),( -2.900124, 18.149395, 0 ),( -1.958775, 18.149395, 0 ),
@@ -27,8 +27,6 @@ def make_ik_fk_swich_ctrl(name,size,offset):
     ctrl = pm.curve(n=name,d=1,p=pos,k=knot)
     set_transform(ctrl,size,offset)
     return ctrl
-
-
 
 
 def make_diamond_ctrl(name,size,offset):

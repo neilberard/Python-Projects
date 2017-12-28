@@ -71,15 +71,14 @@ def group_ctrls():
     create_offset_groups(ctrls)
     create_offset_groups(hdls)
             
-
 '''Parents object under an offset group and adds offset name as suffix'''
-def delete_objects(objects):
+def delete_objects(transform_nodes):
     """
     deletes selected objects without deleting their children.
-    :param objects: Objects to delete
+    :param transform_nodes: Objects to delete
     :return: None
     """
-    for transform in objects:
+    for transform in transform_nodes:
         children = transform.getChildren()
         parent = transform.getParent()
 
@@ -89,20 +88,17 @@ def delete_objects(objects):
         pymel.delete(transform)
 
 
-
-
-
-def create_offset_groups(objects, group_name='_GRP'):
+def create_offset_groups(transform_nodes, group_name='_GRP'):
     """
     Parents Each object to a group node with the object's transforms.
-    :param objects: list of pymel transforms to group.
+    :param transform_nodes: list of pymel transforms to group.
     :param group_name: Suffix added.
     :return: List of offset groups.
     """
 
     offset_groups = []
 
-    for transform in objects:
+    for transform in transform_nodes:
 
         transform_parent = transform.getParent()
         transform_matrix = transform.getMatrix(worldSpace=True)

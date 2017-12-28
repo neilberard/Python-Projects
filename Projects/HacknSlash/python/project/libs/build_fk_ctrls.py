@@ -1,10 +1,28 @@
-'''HSBuild_RIG'''
-import maya.cmds as cmds
-import maya.api.OpenMaya as om
-import pymel.core as pm
-import HSConsts as cn
-jnt = cmds.ls(type='joint')
-jntParent = []
+import pymel.core as pymel
+
+
+def create_circle(size):
+    circle = pymel.circle()
+    return circle
+
+def build_fk_ctrls(jnt, ctrl, **kwargs):
+    """
+
+    :param joints:
+    :param ctrl_size:
+    :return:
+    """
+
+    jnt_matrix = jnt.getMatrix(worldSpace=True)
+    jnt_children = jnt.getChildren()
+    jnt_parent = jnt.getParent()
+
+
+
+
+
+
+
 for i in range(len(jnt)):
     pos = cmds.xform(jnt[i],q=True,m=True,ws=True)   
     c = cmds.circle(r=3,nr=(1,0,0), n=str(jnt[i]) + cn.basetype['fk']+ cn.basetype['ctrl'])
