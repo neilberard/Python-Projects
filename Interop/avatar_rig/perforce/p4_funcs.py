@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
 #print p4_file.perform_perforce_command('p4 login < C:/p4pass.txt')
 
-print p4_file.perform_perforce_command('p4 set P4PASSWD=So0niawo12')
+
 
 
 
