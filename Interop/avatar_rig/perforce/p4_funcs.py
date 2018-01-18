@@ -1,11 +1,13 @@
-import pymel.core as pm
+import pymel.core as pymel
 import os
 import subprocess
+import logging
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
-p4_path = pm.util.getEnv('AVATARS_V3_PERFORCE_DEPOT')
-norm_p4_path = '/'.join(p4_path.split('\\'))
-act_path = "/ACT/Assets/SubmissionContent"
+
 
 models_path = "Models"
 textures_path = "Textures"
@@ -19,22 +21,50 @@ maya_file = ".ma"
 fbx_file = ".fbx"
 
 
-class GetFilePaths(object):
+class FilePaths(object):
 
-    path = pm.system.sceneName()
+    def __init__(self):
+
+        self._avatars_depot_path = '/'.join(os.environ['AVATARS_V3_PERFORCE_DEPOT'].split('\\'))
+        self._ACT_path = "/ACT/Assets/SubmissionContent"
+        self._file_path = []
+
+    @property
+    def file_path(self):
+        return self._file_path
+
+    @file_path.setter
+    def file_path(self, str_path):
+        self._file_path = str_path
+
+    @property
+    def ACT_path(self):
+        return self._ACT_path
+
+    @ACT_path.setter
+    def ACT_path(self, str_path):
+        self._ACT_path = str_path
+
+    @property
+    def avatars_depot_path(self):
+        return self._avatars_depot_path
+
+    @avatars_depot_path.setter
+    def avatars_depot_path(self, str_path):
+        self._avatars_depot_path = str_path
 
     def get_source(self):
         out_paths = []
-        if self.path.find(gendered + maya_file):
-            out_paths.append(self.path.replace(gendered + maya_file, female + fbx_file))
-            out_paths.append(self.path.replace(gendered + maya_file, male + fbx_file))
+        if self._file_path.find(gendered + maya_file):
+            out_paths.append(self._file_path.replace(gendered + maya_file, female + fbx_file))
+            out_paths.append(self._file_path.replace(gendered + maya_file, male + fbx_file))
             out_paths.append(self.find_substance())
             return out_paths
-        if self.path.find(shared + maya_file):
-            return self.path.replace(maya_file, fbx_file)
+        if self._file_path.find(shared + maya_file):
+            return self._file_path.replace(maya_file, fbx_file)
 
     def find_substance(self):
-        txt_src = self.path.replace(models_path, textures_path)
+        txt_src = self._file_path.replace(models_path, textures_path)
         a = txt_src.replace(maya_file, substance_file)
         substance_path = a.replace(gendered, "")
         if os.path.isfile(substance_path):
@@ -44,21 +74,25 @@ class GetFilePaths(object):
             return None
 
 
-class FStat(GetFilePaths):
+class FStat(FilePaths):
+    """
+    Issues P4 Commands via subprocess and Returns OutPut
+    """
 
     def perform_perforce_command(self, command):
         sub = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        return sub.read()
-
-
-    def fstat(self):
-        command = "p4 fstat " + str(self.path)
-        return self.perform_perforce_command(command)
+        return sub.communicate()
 
     def get_fstat(self):
-        my_fstat = self.fstat().split('...')
-        print my_fstat
-        return my_fstat
+        command = "p4 fstat " + str(self._file_path)
+        return self.perform_perforce_command(command)
+
+    # def get_fstat(self):
+    #     """Returns Perforce file status. IE: Is the file checked out."""
+    #     command = "p4 fstat " + str(self._file_path)
+    #     fstat = self.perform_perforce_command(command).split('...') # Returns a File status list.
+    #     log.info('Perforce File Status: {}'.format(fstat))
+    #     return fstat
 
     def is_checked_out(self):
         message = self.get_fstat()
@@ -95,36 +129,40 @@ class FStat(GetFilePaths):
 
 
 class P4Funcs(FStat):
+    def __init__(self):
+        super(P4Funcs, self).__init__()
 
     def revert_file(self):
         if self.is_checked_out():
             print 'ready'
-            command = "p4 revert " + str(self.path)
+            command = "p4 revert " + str(self._file_path)
             self.perform_perforce_command(command)
             print 'REVERTED'
 
     def check_out_file(self):
         if self.is_checked_out():
             return
-        command = "p4 edit -c default " + str(self.path)
+        command = "p4 edit -c default " + str(self._file_path)
         print command
         self.perform_perforce_command(command)
 
-        print self.path, "CHECKED OUT"
+        print self._file_path, "CHECKED OUT"
 
     def get_latest(self):
         if self.is_latest_revision():
             print 'Already have latest'
             return
 
-        command = "p4 sync --parallel=0 " + str(self.path) + "#head"
+        command = "p4 sync --parallel=0 " + str(self._file_path) + "#head"
         sub = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         if len(sub.stdout.read()) == 0:
             print "Have latest"
         return
 
 
-class FileFuncs(GetFilePaths):
+class FileFuncs(FilePaths):
+    def __init__(self):
+        super(FileFuncs, self).__init__()
 
     def copy_to_act(self):
         if len(self.get_source()) == 0:
@@ -134,13 +172,27 @@ class FileFuncs(GetFilePaths):
         for i in self.get_source():
             if os.path.isfile(i):
                 source = i
-                dest = i.replace(norm_p4_path, norm_p4_path + act_path)
+                dest = i.replace(self._avatars_depot_path, self._avatars_depot_path + self._ACT_path)
             print source, " copy to ", dest
             if os.path.isfile(dest):
                 print "dest path is good"
 
-            pm.system.sysFile(source, copy=dest)
+            pymel.system.sysFile(source, copy=dest)
 
+
+p4_file = P4Funcs()
+
+
+if __name__ == '__main__':
+    p4_file.file_path = (''.join([p4_file.avatars_depot_path, '/items/Skinnable/Top/Models/MilitaryJacket_G.ma']))
+    fstat = p4_file.get_fstat()
+    for obj in fstat:
+        print obj
+
+
+#print p4_file.perform_perforce_command('p4 login < C:/p4pass.txt')
+
+print p4_file.perform_perforce_command('p4 set P4PASSWD=So0niawo12')
 
 
 
