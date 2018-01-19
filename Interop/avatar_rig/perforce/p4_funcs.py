@@ -2,6 +2,7 @@ import pymel.core as pymel
 import os
 import subprocess
 import logging
+import re
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -87,12 +88,6 @@ class FStat(FilePaths):
         command = "p4 fstat " + str(self._file_path)
         return self.perform_perforce_command(command)
 
-    # def get_fstat(self):
-    #     """Returns Perforce file status. IE: Is the file checked out."""
-    #     command = "p4 fstat " + str(self._file_path)
-    #     fstat = self.perform_perforce_command(command).split('...') # Returns a File status list.
-    #     log.info('Perforce File Status: {}'.format(fstat))
-    #     return fstat
 
     def is_checked_out(self):
         message = self.get_fstat()
@@ -132,12 +127,44 @@ class P4Funcs(FStat):
     def __init__(self):
         super(P4Funcs, self).__init__()
 
+    def get_info(self):
+        command = 'p4 info'
+
+        # p4 info returns a multi-line str, parsing this str into a dict. Example key['User name'] : value['name']
+        environment_info = {}
+        file_info = str(self.perform_perforce_command(command)[0]).splitlines()
+
+        for str_line in file_info:
+            info = str_line.split(': ')
+            environment_info[info[0]] = info[1]
+        return environment_info
+
+    def get_workspaces(self, user):
+        command = 'p4 workspaces -u {}'.format(user)
+
+        # parsing output
+        p4_output = self.perform_perforce_command(command)
+        p4_output_split = str(p4_output[0]).split(' ')
+
+        # gathering workspaces
+        workspaces = []
+        for num, obj in enumerate(p4_output_split):
+
+            if obj.find('Client') != -1:
+                workspaces.append(p4_output_split[num + 1])
+
+        return workspaces
+
+    def set_client(self, client):
+        command = 'p4 set P4CLIENT={}'.format(client)
+        return self.perform_perforce_command(command)
+
     def revert_file(self):
         if self.is_checked_out():
             print 'ready'
             command = "p4 revert " + str(self._file_path)
             self.perform_perforce_command(command)
-            print 'REVERTED'
+            log.info('REVERTED')
 
     def check_out_file(self):
         if self.is_checked_out():
@@ -186,17 +213,16 @@ p4_file = P4Funcs()
 if __name__ == '__main__':
     p4_file.file_path = (''.join([p4_file.avatars_depot_path, '/items/Skinnable/Top/Models/MilitaryJacket_G.ma']))
     fstat = p4_file.get_fstat()
-    for obj in fstat:
-        print obj
+#
+#
+env = p4_file.get_info()
 
+print env
 
-#print p4_file.perform_perforce_command('p4 login < C:/p4pass.txt')
-
-
-
-
-
-
-
-
-
+#
+# workspaces = p4_file.get_workspaces(env['User name'])
+#
+#
+# print workspaces
+#
+#
