@@ -3,6 +3,7 @@ import maya.OpenMayaUI as omui
 from shiboken2 import wrapInstance
 import os
 
+import pymel.core as pymel
 from Interop.pyside.core.qt import QtCore, QtWidgets, loadUiType
 from Interop.avatar_rig.perforce import p4_funcs
 import logging
@@ -12,8 +13,6 @@ reload(p4_funcs)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-
 
 if not __name__ == '__main__':
     ui_file_name = os.path.dirname(__file__) + r'\p4_environment.ui'
@@ -39,6 +38,14 @@ class P4Window(Base, FormClass):
 
         #Gathering USER INFO
         self.p4funcs = p4_funcs.P4Funcs()
+
+        #IS USER LOGGED INTO P4?? Peforming check to make sure.
+        if not self.p4funcs.get_login():
+            dialog = 'Warning: User is not logged into Perforce, \n Either open P4V and login or open command prompt and type "p4 login"'
+            log.error(dialog)
+            pymel.confirmDialog(message=dialog)
+            return
+
         self.environment_info = self.p4funcs.get_info()
 
         #Gathering Workspaces and adding them to a combo box, setting currentIndex to current workspace.
@@ -71,22 +78,3 @@ class P4Window(Base, FormClass):
 
 
 
-
-
-
-
-
-
-
-
-
-
-    """Sample"""
-    # @QtCore.Slot()
-    # def on_clickMe_clicked(self):
-    #     print 'CLICKED'
-
-
-if __name__ == '__main__':
-    P4_Window = P4Window()
-    P4_Window.show()

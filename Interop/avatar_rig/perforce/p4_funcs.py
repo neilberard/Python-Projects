@@ -85,7 +85,6 @@ class FStat(FilePaths):
         command = "p4 fstat " + str(self._file_path)
         return self.perform_perforce_command(command)
 
-
     def is_checked_out(self):
         message = self.get_fstat()
         for i in message:
