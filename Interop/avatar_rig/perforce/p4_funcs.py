@@ -7,9 +7,6 @@ import re
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-
-
-
 models_path = "Models"
 textures_path = "Textures"
 substance_file = ".sbsar"
@@ -124,8 +121,18 @@ class FStat(FilePaths):
 
 
 class P4Funcs(FStat):
+
     def __init__(self):
         super(P4Funcs, self).__init__()
+
+    def get_login(self):
+        command = 'p4 login -s'
+        login_data = self.perform_perforce_command(command)
+        for data in login_data:
+            if data.find('invalid') != -1:  # Assuming that any other return indicates user is logged in.
+                return False
+        else:
+            return True
 
     def get_info(self):
         command = 'p4 info'
@@ -136,7 +143,11 @@ class P4Funcs(FStat):
 
         for str_line in file_info:
             info = str_line.split(': ')
-            environment_info[info[0]] = info[1]
+            try:
+                environment_info[info[0]] = info[1]
+            except IndexError:
+                log.warning('Could not find environment(client) {}'.format(str_line))
+
         return environment_info
 
     def get_workspaces(self, user):
@@ -155,8 +166,28 @@ class P4Funcs(FStat):
 
         return workspaces
 
+    def get_latest(self):
+        if self.is_latest_revision():
+            print 'Already have latest'
+            return
+
+        command = "p4 sync --parallel=0 {} #head".format(self._file_path)
+        sub = self.perform_perforce_command(command)
+        if not sub:
+            log.info('{}: is up to date'.format(self.file_path))
+            return True
+        return False
+
     def set_client(self, client):
         command = 'p4 set P4CLIENT={}'.format(client)
+        return self.perform_perforce_command(command)
+
+    def set_user(self, user):
+        command = 'p4 set P4USER={}'.format(user)
+        return self.perform_perforce_command(command)
+
+    def set_port(self, port):
+        command = 'p4 set P4PORT={}'.format(port)
         return self.perform_perforce_command(command)
 
     def revert_file(self):
@@ -170,24 +201,12 @@ class P4Funcs(FStat):
         if self.is_checked_out():
             return
         command = "p4 edit -c default " + str(self._file_path)
-        print command
-        self.perform_perforce_command(command)
-
-        print self._file_path, "CHECKED OUT"
-
-    def get_latest(self):
-        if self.is_latest_revision():
-            print 'Already have latest'
-            return
-
-        command = "p4 sync --parallel=0 " + str(self._file_path) + "#head"
-        sub = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        if len(sub.stdout.read()) == 0:
-            print "Have latest"
-        return
+        result = self.perform_perforce_command(command)
+        log.info('{} CHECKED OUT'.format(self._file_path))
 
 
 class FileFuncs(FilePaths):
+    """Set of iterative subroutines"""
     def __init__(self):
         super(FileFuncs, self).__init__()
 
@@ -206,23 +225,9 @@ class FileFuncs(FilePaths):
 
             pymel.system.sysFile(source, copy=dest)
 
-
-p4_file = P4Funcs()
-
-
 if __name__ == '__main__':
-    p4_file.file_path = (''.join([p4_file.avatars_depot_path, '/items/Skinnable/Top/Models/MilitaryJacket_G.ma']))
-    fstat = p4_file.get_fstat()
-#
-#
-env = p4_file.get_info()
+    p4_file = P4Funcs()
 
-print env
-
-#
-# workspaces = p4_file.get_workspaces(env['User name'])
-#
-#
-# print workspaces
-#
-#
+    # p4_file.file_path = (''.join([p4_file.avatars_depot_path, '/items/Skinnable/Top/Models/MilitaryJacket_G.ma']))
+    # fstat = p4_file.get_fstat()
+    # env = p4_file.get_info()

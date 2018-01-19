@@ -5,7 +5,13 @@ import os
 
 from Interop.pyside.core.qt import QtCore, QtWidgets, loadUiType
 from Interop.avatar_rig.perforce import p4_funcs
+import logging
+
+Slot = QtCore.Slot()
 reload(p4_funcs)
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 
@@ -34,17 +40,36 @@ class P4Window(Base, FormClass):
         #Gathering USER INFO
         self.p4funcs = p4_funcs.P4Funcs()
         self.environment_info = self.p4funcs.get_info()
-        self.workspaces = self.p4funcs.get_workspaces(self.environment_info['User name'])
-        for item in self.workspaces:
-            self.cb_P4CLIENT.addItem(item)
 
-        index = self.cb_P4CLIENT.findText(self.environment_info['Client name'])
-        if index:
-            self.cb_P4CLIENT.setCurrentIndex(index)
+        #Gathering Workspaces and adding them to a combo box, setting currentIndex to current workspace.
+        try:
+            self.workspaces = self.p4funcs.get_workspaces(self.environment_info['User name'])
+            for item in self.workspaces:
+                self.cb_P4CLIENT.addItem(item)
+
+            index = self.cb_P4CLIENT.findText(self.environment_info['Client name'])
+            if index:
+                self.cb_P4CLIENT.setCurrentIndex(index)
+        except KeyError:
+            log.warning('no workspace found')
+
+        try:
+            self.line_P4PORT.setText(self.environment_info['Server address'])
+        except KeyError:
+            log.warning('no server found, please set server')
+
+        try:
+            self.line_P4USER.setText(self.environment_info['User name'])
+        except KeyError:
+            log.warning('need to set user')
+
+    @Slot
+    def on_btn_accept_clicked(self):
+        self.p4funcs.set_port(self.line_P4PORT.text())  # SERVER
+        self.p4funcs.set_user(self.line_P4USER.text())  # USER
+        self.p4funcs.set_client(self.cb_P4CLIENT.currentText())  # WORKSPACE
 
 
-        self.line_P4PORT.setText(self.environment_info['Server address'])
-        self.line_P4USER.setText(self.environment_info['User name'])
 
 
 

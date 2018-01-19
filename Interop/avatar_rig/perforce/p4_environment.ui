@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>446</width>
-    <height>228</height>
+    <width>435</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>Environment Settings</string>
+     <string/>
     </property>
     <widget class="QWidget" name="formLayoutWidget">
      <property name="geometry">
@@ -43,7 +43,7 @@
        <number>20</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="lbl_p4port">
         <property name="text">
          <string>Server (P4PORT)</string>
         </property>
@@ -53,7 +53,7 @@
        <widget class="QLineEdit" name="line_P4PORT"/>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="lbl_p4_user">
         <property name="text">
          <string>User (P4USER)</string>
         </property>
@@ -92,7 +92,7 @@
       <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btn_cancel">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -111,7 +111,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_Accept">
+         <widget class="QPushButton" name="btn_accept">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -140,10 +140,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>446</width>
+     <width>435</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuP4_Environment_Settings">
+    <property name="title">
+     <string>P4 Environment Settings</string>
+    </property>
+   </widget>
+   <addaction name="menuP4_Environment_Settings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
