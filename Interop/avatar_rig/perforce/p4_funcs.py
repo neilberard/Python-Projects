@@ -191,17 +191,18 @@ class P4Funcs(FStat):
 
     def revert_file(self):
         if self.is_checked_out():
-            print 'ready'
             command = "p4 revert " + str(self._file_path)
-            self.perform_perforce_command(command)
-            log.info('REVERTED')
+            output = self.perform_perforce_command(command)
+            log.info('REVERTED: {}'.format(output))
+            return output
 
     def check_out_file(self):
         if self.is_checked_out():
             return
         command = "p4 edit -c default " + str(self._file_path)
-        result = self.perform_perforce_command(command)
-        log.info('{} CHECKED OUT'.format(self._file_path))
+        output = self.perform_perforce_command(command)
+        log.info('{} : {} CHECKED OUT'.format(output, self._file_path))
+        return output
 
 
 class FileFuncs(FilePaths):
