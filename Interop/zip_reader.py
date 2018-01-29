@@ -12,7 +12,7 @@ def get_name(zip_path):
 
 for filename in os.listdir(path):
     zip_path = path + filename
-    print get_name(zip_path)
+    print get_name(zip_path), filename
 
 
 
