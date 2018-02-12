@@ -1485,14 +1485,14 @@ if __name__ == "__main__":
 # In PySide(2), loadUi does not exist, so we implement it
 #
 # `_UiLoader` is adapted from the qtpy project, which was further influenced
-# by core-helpers which was released under a 3-clause BSD license which in turn
+# by qt-helpers which was released under a 3-clause BSD license which in turn
 # is based on a solution at:
 #
 # - https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
 #
 # The License for this code is as follows:
 #
-# core-helpers - a common front-end to various Qt modules
+# qt-helpers - a common front-end to various Qt modules
 #
 # Copyright (c) 2015, Chris Beaumont and Thomas Robitaille
 #
