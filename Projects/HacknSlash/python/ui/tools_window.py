@@ -19,6 +19,7 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
         maya_main = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)  # GET MAIN MAYA WINDOW
         super(ToolsWindow, self).__init__(maya_main)  # PARENT WINDOW
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)  # DELETE WINDOW ON CLOSE
+        log.info(self.__class__.__name__)
         self.setupUi(self)
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
