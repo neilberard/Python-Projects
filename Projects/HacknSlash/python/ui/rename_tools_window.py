@@ -19,11 +19,7 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
         maya_main = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)  # GET MAIN MAYA WINDOW
         super(RenameToolsWindow, self).__init__(maya_main)  # PARENT WINDOW
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)  # DELETE WINDOW ON CLOSE
-        self.windowName = 'RenameToolsWindow'
-        log.info(self.__class__.__name__)
-
         self.setupUi(self)
-
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
     @QtCore.Slot()
@@ -36,15 +32,15 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
 
 
 def showUI():
-    try:
-        rename_tools_window.close()
-    except Exception:
-        pass
-
+    log.info(RenameToolsWindow.__name__)
+    for widget in QtWidgets.QApplication.allWidgets():
+        if type(widget).__name__ == RenameToolsWindow.__name__:
+            try:
+                widget.close()
+            except:
+                pass
     rename_tools_window = RenameToolsWindow()
     rename_tools_window.show()
-    return rename_tools_window
-
 
 
 """Test Code"""
@@ -56,7 +52,7 @@ def showUI():
 
 #C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\HacknSlash\python\ui\tools_window.py
 
-# from Projects.HacknSlash.python.ui import tools_window_ui
-# reload(tools_window_ui)
-# win = tools_window_ui.ToolsWindow()
+# from Projects.HacknSlash.python.ui import rename_tools_window
+# reload(rename_tools_window)
+# win = rename_tools_window.ToolsWindow()
 # win.show()

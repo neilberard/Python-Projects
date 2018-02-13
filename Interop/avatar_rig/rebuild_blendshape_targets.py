@@ -31,7 +31,6 @@ def rebuild_targets_with_mask():
     if tweak_node:
         tweak_node[0].envelope.set(0)
 
-
     blend_shape_node = sel[0].listHistory(type='blendShape')[0]
     blend_aliases = blend_shape_node.listAliases()
     connection_dict = {}
@@ -73,6 +72,6 @@ def rebuild_targets_with_mask():
     if tweak_node:
         tweak_node[0].envelope.set(1)
 
-
+rebuild_targets_with_mask()
 
 
