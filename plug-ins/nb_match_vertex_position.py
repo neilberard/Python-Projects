@@ -36,7 +36,7 @@ def set_vtx_pos(target, points):
 
 
 # MPX PLUGIN
-kPluginCmdName = 'match_vertex_position'
+kPluginCmdName = 'nb_match_vertex_position'
 
 
 class MyUndoableCommand(OpenMayaMPx.MPxCommand):
