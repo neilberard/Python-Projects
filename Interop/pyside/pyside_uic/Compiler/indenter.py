@@ -24,8 +24,6 @@ indentwidth = 4
 
 _indenter = None
 
-print 'Indenter'
-
 class _IndentedCodeWriter(object):
     def __init__(self, output):
         self.level = 0

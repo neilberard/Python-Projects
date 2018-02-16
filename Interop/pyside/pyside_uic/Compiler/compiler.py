@@ -33,7 +33,6 @@ from pyside2uic.Compiler.misc import write_import
 reload(uiparser)
 
 UIParser = uiparser.UIParser
-print "Compiler"
 
 class UICompiler(UIParser):
     def __init__(self):

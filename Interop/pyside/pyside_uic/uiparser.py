@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 logger.disabled = True
 logger.propagate = False
 DEBUG = logger.debug
-print "PARSER"
+
 
 if sys.version_info < (2,4,0):
     def reversed(seq):
