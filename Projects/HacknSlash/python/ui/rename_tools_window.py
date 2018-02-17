@@ -27,21 +27,16 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
         super(RenameToolsWindow, self).__init__(maya_main)  # PARENT WINDOW
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)  # DELETE WINDOW ON CLOSE
         self.setupUi(self)
-
-        self.cbx_strip_letters.hide()
-        self.lbl_strip_letters.hide()
+        self.setWindowTitle(type(self).__name__)
         self.btn_execute.setText('Replace')
 
-    def reset_ui(self):
-        pass
+        self.resize(self.vlayout.sizeHint())
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
     @QtCore.Slot()
     def on_cb_mode_currentIndexChanged(self):
         # Replace
         if self.cb_mode.currentText() == 'Replace':
-            self.cbx_strip_letters.hide()
-            self.lbl_strip_letters.hide()
             self.ln_find.show()
             self.lbl_find.show()
             self.ln_replace.show()
@@ -51,47 +46,32 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
 
         #  Rename
         if self.cb_mode.currentText() == 'Rename':
-            self.cbx_strip_letters.hide()
-            self.lbl_strip_letters.hide()
             self.ln_find.hide()
             self.lbl_find.hide()
             self.ln_replace.show()
-            self.lbl_replace.show()
-            self.lbl_replace.setText('Rename')
+            self.lbl_replace.hide()
             self.btn_execute.setText('Rename')
 
         #  Add Prefix
         if self.cb_mode.currentText() == 'Add Prefix':
-            self.cbx_strip_letters.hide()
-            self.lbl_strip_letters.hide()
             self.ln_find.hide()
             self.lbl_find.hide()
             self.ln_replace.show()
-            self.lbl_replace.show()
+            self.lbl_replace.hide()
             self.lbl_replace.setText('Prefix')
             self.btn_execute.setText('Add Prefix')
 
         #  Add Suffix
         if self.cb_mode.currentText() == 'Add Suffix':
-            self.cbx_strip_letters.hide()
-            self.lbl_strip_letters.hide()
             self.ln_find.hide()
             self.lbl_find.hide()
             self.ln_replace.show()
-            self.lbl_replace.show()
+            self.lbl_replace.hide()
             self.lbl_replace.setText('Suffix')
             self.btn_execute.setText('Add Suffix')
-
-        #  Strip Start Letters
-        if self.cb_mode.currentText() == 'Remove Start Letters' \
-                or self.cb_mode.currentText() == 'Remove End Letters':
-            self.cbx_strip_letters.show()
-            self.lbl_strip_letters.show()
-            self.ln_find.hide()
-            self.lbl_find.hide()
-            self.ln_replace.hide()
-            self.lbl_replace.hide()
-            self.btn_execute.setText('Remove Letters')
+        # self.resize(width(), minimumSizeHint().height()
+        self.resize(self.width(), self.vlayout.sizeHint().height())
+        print self.vlayout.sizeHint().width()
 
     @QtCore.Slot()
     def on_btn_execute_clicked(self):
@@ -120,15 +100,8 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
             for item in selection:
                 item.rename(item.name() + self.ln_replace.text())
 
-        if self.cb_mode.currentText() == 'Remove Start Letters':
-            print self.cbx_strip_letters.value()
-            for item in selection:
-
-                item.rename(item.name() + self.ln_replace.text())
-
 
 def showUI():
-    log.info(RenameToolsWindow.__name__)
     for widget in QtWidgets.QApplication.allWidgets():
         if type(widget).__name__ == RenameToolsWindow.__name__:
             try:
@@ -139,13 +112,15 @@ def showUI():
     rename_tools_window.show()
 
 
+showUI()
+
 # app = QtWidgets.QApplication([])
 # win = RenameToolsWindow()
 # win.show()
 # app.exec_()
 
 
-# C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\HacknSlash\python\ui\tools_window.py
+# C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\HacknSlash\python\ui\rename_tools_window.py
 
 # from Projects.HacknSlash.python.ui import rename_tools_window
 # reload(rename_tools_window)
