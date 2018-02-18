@@ -14,8 +14,6 @@ log.setLevel(logging.DEBUG)
 ui_path = ui_file_name = os.path.dirname(__file__) + r'\rename_tools.ui'
 FormClass, BaseClass = loadUiType(ui_file_name)
 
-mode = None
-
 
 class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
     def __init__(self):
@@ -69,9 +67,9 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
             self.lbl_replace.hide()
             self.lbl_replace.setText('Suffix')
             self.btn_execute.setText('Add Suffix')
-        # self.resize(width(), minimumSizeHint().height()
+
+        # Resize the window match shown child widgets.
         self.resize(self.width(), self.vlayout.sizeHint().height())
-        print self.vlayout.sizeHint().width()
 
     @QtCore.Slot()
     def on_btn_execute_clicked(self):
@@ -79,8 +77,6 @@ class RenameToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_cancel_clicked(self):
-        log.info('on_btn_unlock_attr_clicked, CLICKED')
-        print 'on_btn_canceled_clicked, clicked'
         self.close()
 
     def rename(self, selection=None):
@@ -114,6 +110,10 @@ def showUI():
 
 showUI()
 
+
+"""
+Test code.
+"""
 # app = QtWidgets.QApplication([])
 # win = RenameToolsWindow()
 # win.show()
