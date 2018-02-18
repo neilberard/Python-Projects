@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>rig_tools</class>
- <widget class="QDialog" name="rig_tools">
+ <class>nb_tools</class>
+ <widget class="QDialog" name="nb_tools">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
-    <height>348</height>
+    <width>443</width>
+    <height>356</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Rig Tools</string>
+   <string>nb_tools</string>
   </property>
   <widget class="QTabWidget" name="tabWidget">
    <property name="enabled">
@@ -89,7 +89,7 @@
            <x>0</x>
            <y>20</y>
            <width>411</width>
-           <height>121</height>
+           <height>91</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout">
@@ -153,9 +153,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>btn_offset_transforms</zorder>
-        <zorder>gridLayoutWidget</zorder>
-        <zorder>tab_rig_general</zorder>
        </widget>
       </item>
       <item>
@@ -228,8 +225,6 @@
     </attribute>
    </widget>
   </widget>
-  <zorder>tabWidget</zorder>
-  <zorder>grp_box_rig_ctrls</zorder>
  </widget>
  <resources/>
  <connections/>
