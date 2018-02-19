@@ -5,10 +5,15 @@ from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 import os
 import logging
+import pymel.core as pymel
 
-from Projects.HacknSlash.python.ui import rename_tools_window
+# Libs
+from Projects.HacknSlash.python.interop.utils import attr_utils
 from Projects.HacknSlash.python.project.libs import build_fk_ctrls
-
+from Projects.HacknSlash.python.project.libs import joint_utils
+reload(attr_utils)
+reload(build_fk_ctrls)
+reload(joint_utils)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -29,12 +34,24 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
     @QtCore.Slot()
     def on_btn_unlock_attr_clicked(self):
+        attr_utils.unlock_attributes(nodes=pymel.selected())
         log.info('on_btn_unlock_attr_clicked, CLICKED')
 
     @QtCore.Slot()
+    def on_btn_fk_ctrls_clicked(self):
+        build_fk_ctrls.build_fk_ctrls(joints=pymel.selected())
+        log.info('on_btn_fk_ctrls_clicked, CLICKED')
+
+    @QtCore.Slot()
     def on_btn_rename_clicked(self):
+        from Projects.HacknSlash.python.ui import rename_tools_window
         rename_tools_window.showUI()
         log.info('on_btn_unlock_attr_clicked, CLICKED')
+
+    @QtCore.Slot()
+    def on_btn_build_ikfk_clicked(self):
+        joint_utils.build_ik_fk_joints(joints=pymel.selected())
+        log.info('on_btn_build_ikfk_clicked, CLICKED')
 
 
 def showUI():

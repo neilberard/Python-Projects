@@ -94,7 +94,16 @@
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>6</number>
           </property>
           <item row="0" column="1">
            <widget class="QPushButton" name="btn_fk_ctrls">
@@ -103,6 +112,12 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="toolTip">
              <string>Build FK controls on selected objects </string>
@@ -115,10 +130,16 @@
           <item row="0" column="0">
            <widget class="QPushButton" name="btn_offset_transforms">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="text">
              <string>Offset Group</string>
@@ -126,7 +147,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QPushButton" name="btn_fkik">
+           <widget class="QPushButton" name="btn_build_ikfk">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -139,15 +160,15 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QPushButton" name="btn_rename">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QPushButton" name="btn_remove">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="text">
-             <string>Rename Tools</string>
+             <string>Remove Transform</string>
             </property>
            </widget>
           </item>
@@ -183,15 +204,27 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_rig_general">
           <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
           </property>
-          <item row="0" column="0">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <item row="0" column="1">
            <widget class="QPushButton" name="btn_unlock_attr">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="text">
              <string>Unlock Attributes</string>
@@ -205,10 +238,22 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="btn_remove">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="btn_rename">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="text">
-             <string>Remove Transform</string>
+             <string>Rename Tools</string>
             </property>
            </widget>
           </item>
@@ -219,7 +264,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="tab_modeling">
     <attribute name="title">
      <string>Page</string>
     </attribute>
