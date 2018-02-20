@@ -1,3 +1,4 @@
+from Projects.HacknSlash.python.project.libs import consts
 
 
 class item_info(object):
@@ -10,6 +11,9 @@ class item_info(object):
 
     @property
     def side(self):
+        for name in self.name_list:
+            if name in consts.side.values():
+                self._side = name
         return self._side
 
     @side.setter
