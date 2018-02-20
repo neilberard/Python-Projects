@@ -3,19 +3,19 @@
 
 #Base Names
 
-torso = {'pelvis': 'Pelvis', 'spine': 'Spine', 'chest': 'Chest', 'clavicle': 'Clavicle',
-         'foot': 'Foot', 'hand': 'Hand', 'pole': 'Pole',
-         'main': 'Main', 'switch': 'Switch', 'ikfk': 'IKFK',
+TORSO = ['Pelvis', 'Spine', 'Chest', 'Clavicle']
+
+         'Main', 'switch': 'Switch', 'ikfk': 'IKFK',
          }
 
-side = {'l': 'L', 'r': 'R'}
+SIDE = ['L', 'R']
 
-arm = {'shoulder': 'Shoulder', 'elbow': 'Elbow', 'wrist': 'Wrist'}
+ARM = ['Shoulder', 'Elbow', 'Wrist', 'Hand', 'Pole']
 
-leg = {'hip': 'Hip', 'knee': 'Knee', 'ankle': 'Ankle', 'ball': 'Ball', 'toe': 'Toe'}
+LEG = ['Hip', 'Knee', 'Ankle', 'Ball', 'Toe', 'Foot']
 
-hand = {'thumb': 'Thumb', 'index': 'Index', 'middle': 'Middle', 'ring': 'Ring', 'pinky': 'Pinky'}
+HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky', 'Hand']
 
-type = {'jnt': 'JNT', 'ik': 'IK', 'fk': 'FK', 'ctrl': 'CTRL', 'grp': 'GRP', 'hdl': 'HDL',
-        'arm': 'Arm', 'leg': 'Leg', 'offset': 'Offset', 'anno': 'Annotation', 'loc': 'LOC', 'utility': 'Utility',
+TYPE = ['JNT', 'IK', 'FK', 'CTRL', 'GRP', 'HDL',
+        'Offset', 'anno': 'Annotation', 'loc': 'LOC', 'utility': 'Utility',
         'con': 'Condition', 'const': 'Constraint'}
