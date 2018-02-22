@@ -1,5 +1,5 @@
 '''HS_Clean'''
-import HS_Consts as cn
+from Projects.HacknSlash.python.project import HS_Consts as cn
 import pymel.core as pm
 
 
@@ -53,4 +53,6 @@ def cleanup():
         pm.delete(con)
     
 
-
+"""Test Code"""
+if __name__ == '__main__':
+    cleanup()
