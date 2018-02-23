@@ -30,7 +30,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.resize(self.vlayout.sizeHint())  # Resize to widgets
 
         # Ctrl_builder class
-        self.ctrl_builder = build_fk_ctrls.CreateCtrl()
+        self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
         self.ctrl_builder.size = 10
         log.info(self.ctrl_builder.size)
 
@@ -39,15 +39,15 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     @QtCore.Slot()
     def on_sldr_valueChanged(self):
         print self.sldr.value()
-        self.ctrl_builder.size = self.sldr.value()
-        log.info('on_sldr_valueChanged_connect')
+        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+
 
     @QtCore.Slot()
     def on_cb_shape_currentIndexChanged(self):
         log.info(self.cb_shape.currentText())
-        self.ctrl_builder.type = self.cb_shape.currentText()
-        self.ctrl_builder.make_object()
-        self.ctrl_builder.size = self.sldr.value()
+        self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
+        self.ctrl_builder.create_ctrls()
+        self.ctrl_builder.set_ctrl_size(self.sldr.value())
 
 
         log.info('on_cb_shape_currentIndexChange')

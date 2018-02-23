@@ -55,7 +55,7 @@ def create_window():
     pm.columnLayout(adjustableColumn=True)
 
     pm.text('Select NEW shape, OLD shape, Target(s)')
-    pm.button(label='Bake Delta', command='run()')
+    pm.button(label='Bake Delta', command=run)
     print 'OPEN'
 
     pm.showWindow(window)
