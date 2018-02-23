@@ -74,6 +74,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Cube</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>Foot</string>
         </property>
        </item>

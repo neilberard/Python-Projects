@@ -78,10 +78,12 @@ class ControlBuilder(object):
         self._ctrls = {}
         self._joint_info = {}
 
-        # Get info
-        self.get_ctrl_dict()
-        self.get_joint_info_dict()
-        self.set_ctrl_matrix()
+        if self._joints:
+
+            # Get info
+            self.set_ctrl_dict()
+            self.set_joint_dict()
+            self.set_ctrl_matrix()
 
     @property
     def joints(self):
@@ -90,8 +92,11 @@ class ControlBuilder(object):
     @joints.setter
     def joints(self, joints):
         self._joints = joints
+        self.set_ctrl_dict()
+        self.set_joint_dict()
 
-    def get_ctrl_dict(self):
+    def set_ctrl_dict(self):
+        self._ctrls = {}
 
         # If nothing is selected, will return a single instance.
         if not self._joints:
@@ -100,11 +105,14 @@ class ControlBuilder(object):
             for jnt in self._joints:
                 self._ctrls[jnt.name()] = CreateCtrl()
 
-    def get_joint_info_dict(self):
+    def set_joint_dict(self):
         """
         :return: skeleton_info{jnt_info:{'jnt_matrix': list, 'jnt_children': list,'jnt_parent': parent}}
         """
         self._joint_info = {}
+
+        if not self._joints:
+            return
 
         for jnt in self._joints:
             jnt_info = {'jnt_matrix': jnt.getMatrix(worldSpace=True),
@@ -113,6 +121,7 @@ class ControlBuilder(object):
             self._joint_info[jnt.name()] = jnt_info
 
     def create_ctrls(self):
+        log.info(self._ctrls.values())
         for ctrl_instance in self._ctrls.values():
             ctrl_instance.make_object()
 
@@ -123,57 +132,64 @@ class ControlBuilder(object):
     def set_ctrl_type(self, ctrl_type):
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].type = ctrl_type
+            log.info(self._ctrls[ctrl_instance].type)
 
     def set_ctrl_matrix(self):
+        if not self._joints:
+            return
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].matrix = self._joint_info[ctrl_instance]['jnt_matrix']
 
+    def delete_ctrls(self):
+        for ctrl_instance in self._ctrls.values():
+            ctrl_instance.delete()
 
-def build_fk_ctrls(joints, ctrl_type='circle', ctrl_name='Fk', ctrl_size=1):
-    """
 
-    :param joints:
-    :param ctrl_type:
-    :param ctrl_name:
-    :param ctrl_size:
-    :return:
-    """
-    fk_ctrls = []
-    hierarchy = {}
-
-    for jnt in joints:
-        ctrl_name = jnt.name() + '_FK'  # todo: add a naming function.
-        # Getting joint info.
-        jnt_matrix = jnt.getMatrix(worldSpace=True)
-        jnt_children = jnt.getChildren()
-        jnt_parent = jnt.getParent()
-
-        # Making controller.
-        ctrl = create_ctrl(ctrl_type, ctrl_size, ctrl_name=ctrl_name)
-        ctrl.setMatrix(jnt_matrix, worldSpace=True)
-        pymel.parentConstraint([ctrl, jnt])
-        fk_ctrls.append(ctrl)
-
-        # Rebuild hierarchy
-
-        if jnt_parent:
-            parent_ctrl_name = ctrl_name.replace(jnt.name(), jnt_parent.name())  # Trying to find name of parent ctrl
-            try:
-                parent_ctrl = pymel.PyNode(parent_ctrl_name)
-                ctrl.setParent(parent_ctrl)
-            except pymel.MayaNodeError:
-                pass
-
-        if jnt_children:
-            for jnt_child in jnt_children:
-                child_ctrl_name = ctrl_name.replace(jnt.name(), jnt_child.name())  # Trying to find name of child ctrl
-                try:
-                    child_ctrl = pymel.PyNode(child_ctrl_name)
-                    child_ctrl.setParent(ctrl)
-                except pymel.MayaNodeError:
-                    pass
-
-        return fk_ctrls
+# def build_fk_ctrls(joints, ctrl_type='circle', ctrl_name='Fk', ctrl_size=1):
+#     """
+#
+#     :param joints:
+#     :param ctrl_type:
+#     :param ctrl_name:
+#     :param ctrl_size:
+#     :return:
+#     """
+#     fk_ctrls = []
+#     hierarchy = {}
+#
+#     for jnt in joints:
+#         ctrl_name = jnt.name() + '_FK'  # todo: add a naming function.
+#         # Getting joint info.
+#         jnt_matrix = jnt.getMatrix(worldSpace=True)
+#         jnt_children = jnt.getChildren()
+#         jnt_parent = jnt.getParent()
+#
+#         # Making controller.
+#         ctrl = create_ctrl(ctrl_type, ctrl_size, ctrl_name=ctrl_name)
+#         ctrl.setMatrix(jnt_matrix, worldSpace=True)
+#         pymel.parentConstraint([ctrl, jnt])
+#         fk_ctrls.append(ctrl)
+#
+#         # Rebuild hierarchy
+#
+#         if jnt_parent:
+#             parent_ctrl_name = ctrl_name.replace(jnt.name(), jnt_parent.name())  # Trying to find name of parent ctrl
+#             try:
+#                 parent_ctrl = pymel.PyNode(parent_ctrl_name)
+#                 ctrl.setParent(parent_ctrl)
+#             except pymel.MayaNodeError:
+#                 pass
+#
+#         if jnt_children:
+#             for jnt_child in jnt_children:
+#                 child_ctrl_name = ctrl_name.replace(jnt.name(), jnt_child.name())  # Trying to find name of child ctrl
+#                 try:
+#                     child_ctrl = pymel.PyNode(child_ctrl_name)
+#                     child_ctrl.setParent(ctrl)
+#                 except pymel.MayaNodeError:
+#                     pass
+#
+#         return fk_ctrls
 
 
 

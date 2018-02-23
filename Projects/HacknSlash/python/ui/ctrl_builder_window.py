@@ -31,8 +31,11 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
 
         # Ctrl_builder class
         self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
-        self.ctrl_builder.size = 10
-        log.info(self.ctrl_builder.size)
+
+        self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
+        self.ctrl_builder.create_ctrls()
+        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
 
@@ -44,13 +47,26 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_cb_shape_currentIndexChanged(self):
-        log.info(self.cb_shape.currentText())
+        self.ctrl_builder.delete_ctrls()
+
+        self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
         self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
+        self.ctrl_builder.set_ctrl_matrix()
+
         self.ctrl_builder.create_ctrls()
+
         self.ctrl_builder.set_ctrl_size(self.sldr.value())
 
 
         log.info('on_cb_shape_currentIndexChange')
+
+    @QtCore.Slot()
+    def on_btn_cancel_clicked(self):
+        self.ctrl_builder.delete_ctrls()
+
+    @QtCore.Slot()
+    def focusOutEvent(self, *args):
+        print 'lost_focus'
 
 
 def showUI():

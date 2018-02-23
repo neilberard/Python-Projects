@@ -1,17 +1,32 @@
-'''HSShapes'''
-import maya.api.OpenMaya as om
 import pymel.core as pymel
 
-def make_cube_ctrl(name, size, offset):
+
+def maintain_selection(func):
+    def wrapper(*args, **kwargs):
+        selection = pymel.selected()
+        try:
+            return func(*args, **kwargs)
+        except:
+            pass
+        finally:
+            pymel.select(selection)
+    return wrapper
+
+@maintain_selection
+def make_circle():
+    circle = pymel.circle(normal=(1, 0, 0))[0]
+    return circle
+
+@maintain_selection
+def make_cube_ctrl(name):
     pos = [(-1, 1, 1), (-1, 1, -1), (1, 1, -1), (1, 1, 1), (-1, 1, 1), (-1, -1, 1), (-1, -1, -1),
            (-1, 1, -1), (1, 1, -1), (1, -1, -1), (-1, -1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (1, -1, 1),
            (1, -1, -1)]
     knot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     ctrl = pymel.curve(n=name, d=1, p=pos, k=knot)
-    set_transform(ctrl, size, offset)
     return ctrl
 
-
+@maintain_selection
 def make_ik_fk_swich_ctrl(name, size, offset):
     pos = [(-9.088573, 11.596919, 0), (-9.088573, 18.149395, 0), (-8.178507, 18.149395, 0), (-8.178507, 11.596919, 0),
            (-9.088573, 11.596919, 0), (-6.449382, 11.596919, 0), (-6.449382, 18.149395, 0),
@@ -33,12 +48,12 @@ def make_ik_fk_swich_ctrl(name, size, offset):
     set_transform(ctrl, size, offset)
     return ctrl
 
-
+@maintain_selection
 def make_diamond_ctrl(name):
     ctrl = pymel.curve(n=name, d=1, p=[(0, 0, 1), (0, 1, 0), (0, 0, -1), (0, -1, 0), (0, 0, 1)], k=[0, 1, 2, 3, 4])
     return ctrl
 
-
+@maintain_selection
 def make_foot_ctrl(name):
     ctrl = pymel.circle(r=1, nr=(0, 1, 0), n=name)[0]
     pos = [(8.0, 0.0, -9.0), (-19.0, 0.0, -4.0), (-22.0, 0.0, -3.0), (-23.0, 0.0, 0.0),
@@ -67,12 +82,15 @@ def set_transform(ctrl, size, offset):
 def make_shape(type, name):
 
     if type == 'Circle':
-        return pymel.circle(name=name)[0]
+        return make_circle()
 
     if type == 'Diamond':
         return make_diamond_ctrl(name)
 
     if type == 'Foot':
         return make_foot_ctrl(name)
+
+    if type == 'Cube':
+        return make_cube_ctrl(name)
 
 
