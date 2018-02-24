@@ -124,16 +124,16 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="btn_remove">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>30</height>
-             </size>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="btn_build_ikfk">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="text">
-             <string>Remove Transform</string>
+             <string>FK IK Joints </string>
             </property>
            </widget>
           </item>
@@ -159,33 +159,21 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QPushButton" name="btn_build_ikfk">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="btn_remove">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="text">
-             <string>FK IK Joints </string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QScrollBar" name="horizontalScrollBar">
-            <property name="sliderPosition">
-             <number>50</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <string>Remove Transform</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-        <zorder>gridLayoutWidget</zorder>
-        <zorder>btn_build_ikfk</zorder>
        </widget>
       </item>
       <item>
@@ -271,8 +259,6 @@
           </item>
          </layout>
         </widget>
-        <zorder>gridLayoutWidget_2</zorder>
-        <zorder>grp_box_rig_ctrls</zorder>
        </widget>
       </item>
      </layout>

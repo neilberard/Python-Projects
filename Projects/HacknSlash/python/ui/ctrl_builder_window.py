@@ -2,6 +2,7 @@
 from Interop.pyside.core.qt import QtCore, QtWidgets, QtGui, loadUiType
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
+import maya.OpenMaya as OpenMaya
 import os
 import logging
 import pymel.core as pymel
@@ -24,6 +25,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         except:
             pass
         super(ControlBuilderWindow, self).__init__(maya_main)  # PARENT WINDOW
+        self.callback_events = []
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)  # DELETE WINDOW ON CLOSE
         self.setupUi(self)
         self.setWindowTitle(type(self).__name__)
@@ -32,42 +34,64 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         # Ctrl_builder class
         self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
 
-        self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
-        self.ctrl_builder.create_ctrls()
-        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+        self.refresh()
+        self.create_callbacks()
 
+    def create_callbacks(self):
+        """
+        Setup the different maya callbacks that the UI need to be refreshed correctly
+        """
+        self.remove_callbacks()
+        self.callback_events = [
+            OpenMaya.MEventMessage.addEventCallback('SelectionChanged', self.refresh)]
+
+    def remove_callbacks(self):
+        """
+        Remove all callabacks setup by the UI
+        """
+        for callback_id in self.callback_events:
+            OpenMaya.MEventMessage.removeCallback(callback_id)
+        self.callback_events = []
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
-
-    @QtCore.Slot()
-    def on_sldr_valueChanged(self):
-        print self.sldr.value()
-        self.ctrl_builder.set_ctrl_size(self.sldr.value())
-
-
-    @QtCore.Slot()
-    def on_cb_shape_currentIndexChanged(self):
+    def refresh(self, *args):
         self.ctrl_builder.delete_ctrls()
-
         self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
         self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
         self.ctrl_builder.set_ctrl_matrix()
-
         self.ctrl_builder.create_ctrls()
-
+        self.ctrl_builder.get_ctrl_distance()
         self.ctrl_builder.set_ctrl_size(self.sldr.value())
 
 
-        log.info('on_cb_shape_currentIndexChange')
+    @QtCore.Slot()
+    def on_sldr_valueChanged(self):
+        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+
+    @QtCore.Slot()
+    def on_cb_shape_currentIndexChanged(self):
+        self.remove_callbacks()
+        self.refresh()
+        self.create_callbacks()
 
     @QtCore.Slot()
     def on_btn_cancel_clicked(self):
         self.ctrl_builder.delete_ctrls()
+        self.close()
 
     @QtCore.Slot()
-    def focusOutEvent(self, *args):
-        print 'lost_focus'
+    def on_btn_execute_clicked(self):
+        log.info('on_btn_execute_clicked')
+        self.ctrl_builder.publish_ctls()
+        self.remove_callbacks()
+        self.close()
 
+
+    @QtCore.Slot()
+    def closeEvent(self, *args):
+        log.info('closing')
+        self.ctrl_builder.delete_ctrls()
+        self.remove_callbacks()
 
 def showUI():
     for widget in QtWidgets.QApplication.allWidgets():

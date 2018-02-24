@@ -11,6 +11,9 @@ import pymel.core as pymel
 from Projects.HacknSlash.python.interop.utils import attr_utils
 from Projects.HacknSlash.python.project.libs import build_fk_ctrls
 from Projects.HacknSlash.python.project.libs import joint_utils
+from Projects.HacknSlash.python.ui import ctrl_builder_window
+
+reload(ctrl_builder_window)
 reload(attr_utils)
 reload(build_fk_ctrls)
 reload(joint_utils)
@@ -39,7 +42,10 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_fk_ctrls_clicked(self):
-        build_fk_ctrls.build_fk_ctrls(joints=pymel.selected())
+
+        ctrl_builder_window.showUI()
+
+        # build_fk_ctrls.build_fk_ctrls(joints=pymel.selected())
         log.info('on_btn_fk_ctrls_clicked, CLICKED')
 
     @QtCore.Slot()
