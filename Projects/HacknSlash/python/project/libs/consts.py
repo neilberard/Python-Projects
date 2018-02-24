@@ -2,7 +2,7 @@
 
 TORSO = ['Pelvis', 'Spine', 'Chest', 'Clavicle']
 
-ARM = ['Shoulder', 'Elbow', 'Wrist', 'Hand', 'Pole']
+ARM = ['Shoulder', 'Elbow', 'Wrist', 'Pole']
 
 LEG = ['Hip', 'Knee', 'Ankle', 'Ball', 'Toe', 'Foot']
 
@@ -13,4 +13,11 @@ SIDE = ['L', 'R']
 TYPE = ['GRP', 'JNT', 'IK', 'FK', 'CTRL', 'HDL', 'Offset', 'Annotation', 'LOC', 'Utility', 'Condition', 'Constraint',
         'Main', 'Switch', 'IKFK']
 
+IK = ['Hand', 'Pole', 'Foot']
+
+
+
+"""Test Code"""
+
+from Projects.HacknSlash.python.project.libs import consts
 

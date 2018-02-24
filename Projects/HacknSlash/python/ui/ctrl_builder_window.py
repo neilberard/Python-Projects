@@ -57,16 +57,16 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     def refresh(self, *args):
         self.ctrl_builder.delete_ctrls()
         self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
-        self.ctrl_builder.set_ctrl_type(self.cb_shape.currentText())
-        self.ctrl_builder.set_ctrl_matrix()
+        self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
+        self.ctrl_builder.set_ctrl_matrices()
         self.ctrl_builder.create_ctrls()
         self.ctrl_builder.get_ctrl_distance()
-        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value())
 
 
     @QtCore.Slot()
     def on_sldr_valueChanged(self):
-        self.ctrl_builder.set_ctrl_size(self.sldr.value())
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value())
 
     @QtCore.Slot()
     def on_cb_shape_currentIndexChanged(self):

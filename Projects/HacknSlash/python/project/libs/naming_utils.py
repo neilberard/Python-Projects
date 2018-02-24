@@ -1,4 +1,5 @@
 from Projects.HacknSlash.python.project.libs import consts
+import itertools
 
 
 class ItemInfo(object):
@@ -7,16 +8,37 @@ class ItemInfo(object):
         Object names should only contain no more than one of each property.
         :param str_name: Name of the object to gather info.
         """
-        self.name_list = str_name.split('_')
-        self._base_name = []
+        self._joint_name = []
         self._side = []
         self._type = []
+        self._base_name = []
+        self.name_list = str_name.split('_')
+
+        for name in self.name_list:
+
+            # SIDE
+            if name in consts.SIDE:
+                self._side = name
+            # TYPE
+            if name in consts.TYPE:
+                self._type = name
+            # JOINT
+            if name in consts.TORSO or \
+                name in consts.ARM or \
+                name in consts.LEG and \
+                    name not in consts.IK:
+                self._joint_name = name
+            # BASENAME
+            if name not in itertools.chain(consts.LEG,
+                                           consts.ARM,
+                                           consts.TORSO,
+                                           consts.SIDE,
+                                           consts.TYPE,
+                                           consts.IK):
+                self._base_name = name
 
     @property
     def side(self):
-        for name in self.name_list:
-            if name in consts.SIDE:
-                self._side = name
         return self._side
 
     @side.setter
@@ -25,31 +47,26 @@ class ItemInfo(object):
 
     @property
     def type(self):
-        for name in self.name_list:
-            if name in consts.TYPE:
-                self._type = name
         return self._type
 
     @type.setter
     def type(self, str):
-        self._type = string
+        self._type = str
 
     @property
-    def base_name(self):
-        for name in self.name_list:
-            if name in consts.TORSO or \
-                 name in consts.ARM or \
-                 name in consts.LEG:
-                    self._base_name = name
-        return self._base_name
+    def joint_name(self):
+        return self._joint_name
 
-    @base_name.setter
-    def base_name(self, str):
-        self._base_name = str
+    @joint_name.setter
+    def joint_name(self, str):
+        self._joint_name = str
+
+    def base_name(self):
+        return self._base_name
 
 
 def concatenate(str_list):
-    string = '_'.join(str_list)
+    string = '_'.join([x for x in str_list if x])
     return string
 
 
@@ -57,13 +74,21 @@ def concatenate(str_list):
 
 if __name__ == '__main__':
 
-    string = 'L_Elbow_JNT'
-
-    info = ItemInfo(string)
-
-    print concatenate(['L', 'Elbow','JNT'])
-
-    print info.type
+    for i in list(itertools.chain(consts.LEG,
+                             consts.ARM,
+                             consts.TORSO,
+                             consts.SIDE,
+                             consts.TYPE,
+                             consts.IK)):
+        print i
+    #
+    # string = 'L_Elbow_JNT'
+    #
+    # info = ItemInfo(string)
+    #
+    # print concatenate(['', 'Elbow', 'JNT'])
+    #
+    # print info.type
 
 
 

@@ -33,6 +33,14 @@ class CreateCtrl(object):
             self._object.setMatrix(self._matrix, worldSpace=True)
 
     @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
+
+    @property
     def type(self):
         return self._type
 
@@ -73,6 +81,10 @@ class CreateCtrl(object):
 
 
 class ControlBuilder(object):
+    """
+    This class is intended to iterate on a dict of CreateCtrl class instances and values.
+    """
+
     def __init__(self, joints=None):
 
         self._joints = joints
@@ -127,20 +139,21 @@ class ControlBuilder(object):
 
             if self._joint_info[index]['jnt_parent']:
                 jnt_parent_vector = om.MVector(self._joint_info[index]['jnt_parent'].getTranslation(space='world'))
-                distance = om.MVector(jnt_vector - jnt_parent_vector)
-                distance_tally.append(distance.length())
+                distanceA = om.MVector(jnt_vector - jnt_parent_vector)
+                distance_tally.append(distanceA.length())
 
             for child in self._joint_info[index]['jnt_children']:
                 child_vector = om.MVector(child.getTranslation(space='world'))
-                distance = om.MVector(jnt_vector - child_vector)
-                distance_tally.append(distance.length())
+                distanceB = om.MVector(jnt_vector - child_vector)
+                distance_tally.append(distanceB.length())
 
             if len(distance_tally) == 0:
+                log.info('Could not gather distance')
                 return
 
             self._joint_info[index]['distance_sum'] = sum(distance_tally)/len(distance_tally)
 
-    def set_ctrl_size(self, size=100.00):
+    def set_ctrl_sizes(self, size=100.00):
 
         for ctrl_instance in self._ctrls:
             try:
@@ -148,16 +161,22 @@ class ControlBuilder(object):
             except:
                 self._ctrls[ctrl_instance].size = (size/10.00)
 
-    def set_ctrl_type(self, ctrl_type):
+    def set_ctrl_types(self, ctrl_type):
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].type = ctrl_type
             log.info(self._ctrls[ctrl_instance].type)
 
-    def set_ctrl_matrix(self):
+    def set_ctrl_matrices(self):
         if not self._joints:
             return
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].matrix = self._joint_info[ctrl_instance]['jnt_matrix']
+
+    def set_ctrl_names(self):
+
+
+
+        pass
 
     def publish_ctls(self):
         for ctrl_instance in self._ctrls:
@@ -165,7 +184,13 @@ class ControlBuilder(object):
                 self._ctrls[ctrl_instance].freeze_transforms()
             except:
                 pass
-            self._ctrls[ctrl_instance] = None
+
+            if self._joint_info[ctrl_instance]['jnt_parent']:
+                log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
+                pass
+
+
+            self._ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
 
 
 
@@ -232,12 +257,12 @@ if __name__ == '__main__':
     vector = om.MVector(1, 0, 0)
 
     ctrl_builder = ControlBuilder(pymel.selected())
-    ctrl_builder.set_ctrl_type('Circle')
+    ctrl_builder.set_ctrl_types('Circle')
     ctrl_builder.get_ctrl_distance()
 
 
     ctrl_builder.create_ctrls()
-    ctrl_builder.set_ctrl_size()
+    ctrl_builder.set_ctrl_sizes()
 
 
 
