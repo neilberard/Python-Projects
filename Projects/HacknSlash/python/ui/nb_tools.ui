@@ -155,7 +155,7 @@
              <string>Build FK controls on selected objects </string>
             </property>
             <property name="text">
-             <string>FK Ctrls(selected)</string>
+             <string>Control Builder</string>
             </property>
            </widget>
           </item>
