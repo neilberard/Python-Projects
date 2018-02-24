@@ -1,4 +1,5 @@
 from Projects.HacknSlash.python.project.libs import consts
+reload(consts)
 import itertools
 
 
@@ -14,8 +15,8 @@ class ItemInfo(object):
         self._base_name = []
         self.name_list = str_name.split('_')
 
+        # Gather name info from str_name.
         for name in self.name_list:
-
             # SIDE
             if name in consts.SIDE:
                 self._side = name
@@ -61,8 +62,14 @@ class ItemInfo(object):
     def joint_name(self, str):
         self._joint_name = str
 
+    @property
     def base_name(self):
         return self._base_name
+
+    @base_name.setter
+    def base_name(self, str):
+        self._base_name = str
+
 
 
 def concatenate(str_list):
@@ -74,14 +81,14 @@ def concatenate(str_list):
 
 if __name__ == '__main__':
 
-    for i in list(itertools.chain(consts.LEG,
-                             consts.ARM,
-                             consts.TORSO,
-                             consts.SIDE,
-                             consts.TYPE,
-                             consts.IK)):
-        print i
-    #
+    name_info = ItemInfo('newthing_Elbow_JNT')
+
+    print concatenate([name_info.base_name, name_info.joint_name])
+    print name_info.type
+
+
+
+
     # string = 'L_Elbow_JNT'
     #
     # info = ItemInfo(string)

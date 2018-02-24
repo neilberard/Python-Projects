@@ -1,10 +1,12 @@
+import logging
 import pymel.core as pymel
 import maya.OpenMaya as om
+from Projects.HacknSlash.python.project.libs import consts
 from Projects.HacknSlash.python.project.libs import naming_utils
 from Projects.HacknSlash.python.project.libs import shapes
 reload(shapes)
-import logging
-
+reload(naming_utils)
+reload(consts)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -173,9 +175,11 @@ class ControlBuilder(object):
             self._ctrls[ctrl_instance].matrix = self._joint_info[ctrl_instance]['jnt_matrix']
 
     def set_ctrl_names(self):
-
-
-
+        for ctrl_instance in self._ctrls:
+            info = naming_utils.ItemInfo(ctrl_instance)
+            self._ctrls[ctrl_instance].name = naming_utils.concatenate([info.base_name,
+                                                                        info.joint_name,
+                                                                        consts.ALL['CTRL']])
         pass
 
     def publish_ctls(self):
