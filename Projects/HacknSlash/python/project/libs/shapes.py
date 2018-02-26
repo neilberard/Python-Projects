@@ -13,8 +13,9 @@ def maintain_selection(func):
     return wrapper
 
 @maintain_selection
-def make_circle():
-    circle = pymel.circle(normal=(1, 0, 0))[0]
+def make_circle(name):
+    circle = pymel.circle(name=name, normal=(1, 0, 0))[0]
+    pymel.rename(circle, name)
     return circle
 
 @maintain_selection
@@ -27,7 +28,7 @@ def make_cube_ctrl(name):
     return ctrl
 
 @maintain_selection
-def make_ik_fk_swich_ctrl(name, size, offset):
+def make_ik_fk_swich_ctrl(name):
     pos = [(-9.088573, 11.596919, 0), (-9.088573, 18.149395, 0), (-8.178507, 18.149395, 0), (-8.178507, 11.596919, 0),
            (-9.088573, 11.596919, 0), (-6.449382, 11.596919, 0), (-6.449382, 18.149395, 0),
            (-5.539316, 18.149395, 0), (-5.539316, 14.917238, 0), (-5.539316, 11.596919, 0), (-6.449382, 11.596919, 0),
@@ -45,7 +46,7 @@ def make_ik_fk_swich_ctrl(name, size, offset):
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44)
     ctrl = pymel.curve(n=name, d=1, p=pos, k=knot)
-    set_transform(ctrl, size, offset)
+    set_transform(ctrl, size=1, offset=(0, 0, 0))
     return ctrl
 
 @maintain_selection
@@ -79,10 +80,11 @@ def set_transform(ctrl, size, offset):
     ctrl.scalePivot.translate.set(0, 0, 0)
     ctrl.rotatePivot.translate.set(0, 0, 0)
 
+
 def make_shape(type, name):
 
     if type == 'Circle':
-        return make_circle()
+        return make_circle(name)
 
     if type == 'Diamond':
         return make_diamond_ctrl(name)
@@ -92,5 +94,8 @@ def make_shape(type, name):
 
     if type == 'Cube':
         return make_cube_ctrl(name)
+
+    if type == 'IKFK':
+        return make_ik_fk_swich_ctrl(name)
 
 

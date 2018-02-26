@@ -14,6 +14,9 @@ HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky', 'Hand']
 
 SIDE = ['L', 'R']
 
+# To prevent a conflict with Left and Right naming, use numbers for indexes above 11.
+INDEX = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+
 TYPE = ['GRP', 'JNT', 'IK', 'FK', 'CTRL', 'HDL', 'Offset', 'Annotation', 'LOC', 'Utility', 'Condition', 'Constraint',
         'Main', 'Switch', 'IKFK']
 
@@ -67,6 +70,4 @@ if __name__ == '__main__':
         for i in items:
                 print "'{}': '{}',".format(i, i)
 
-
-from Projects.HacknSlash.python.project.libs import consts
 

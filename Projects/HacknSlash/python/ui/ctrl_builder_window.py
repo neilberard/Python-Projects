@@ -57,6 +57,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     def refresh(self, *args):
         self.ctrl_builder.delete_ctrls()
         self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
+        self.ctrl_builder.set_ctrl_names()
         self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
         self.ctrl_builder.set_ctrl_matrices()
         self.ctrl_builder.create_ctrls()
@@ -82,8 +83,8 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     @QtCore.Slot()
     def on_btn_execute_clicked(self):
         log.info('on_btn_execute_clicked')
-        self.ctrl_builder.publish_ctls()
         self.remove_callbacks()
+        self.ctrl_builder.publish_ctls()
         self.close()
 
 

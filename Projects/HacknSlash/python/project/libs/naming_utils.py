@@ -14,6 +14,7 @@ class ItemInfo(object):
         self._type = []
         self._base_name = []
         self.name_list = str_name.split('_')
+        self._index = []
 
         # Gather name info from str_name.
         for name in self.name_list:
@@ -25,18 +26,25 @@ class ItemInfo(object):
                 self._type = name
             # JOINT
             if name in consts.TORSO or \
-                name in consts.ARM or \
-                name in consts.LEG and \
-                    name not in consts.IK:
+               name in consts.ARM or \
+               name in consts.HAND or \
+               name in consts.LEG and \
+               name not in consts.IK:
                 self._joint_name = name
             # BASENAME
-            if name not in itertools.chain(consts.LEG,
-                                           consts.ARM,
-                                           consts.TORSO,
-                                           consts.SIDE,
-                                           consts.TYPE,
-                                           consts.IK):
+            if name not in consts.ALL.values() and name not in consts.INDEX:
                 self._base_name = name
+
+            # INDEX
+            if name in consts.INDEX:  # This could be single letters up to 'K' or numbers.
+                self._index = name
+
+            try:  # If name is a number, set index to name.
+                self._index = int(name)
+            except:
+                pass
+
+
 
     @property
     def side(self):
@@ -69,6 +77,15 @@ class ItemInfo(object):
     @base_name.setter
     def base_name(self, str):
         self._base_name = str
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, str):
+        self._index = str
+
 
 
 
