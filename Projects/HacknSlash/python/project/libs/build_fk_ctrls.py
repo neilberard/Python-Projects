@@ -23,13 +23,14 @@ class CreateCtrl(object):
         self._object = None
         self._size = 1
         self._matrix = None
+        self._axis = 'x'
 
     def make_object(self):
         # todo: Add a feature for importing shapes
         if not self._type:
             log.warning('no type specified')
 
-        self._object = shapes.make_shape(self._type, self._name)
+        self._object = shapes.make_shape(self._type, self._name, self._axis)
         if not self._object:
             log.warning('No object was returned')
             return None
@@ -76,6 +77,14 @@ class CreateCtrl(object):
     @matrix.setter
     def matrix(self, matrix):
         self._matrix = matrix
+
+    @property
+    def axis(self):
+        return self._axis
+
+    @axis.setter
+    def axis(self, axis):
+        self._axis = axis
 
     def freeze_transforms(self):
         pymel.makeIdentity(self._object, apply=True, scale=True)
@@ -175,10 +184,13 @@ class ControlBuilder(object):
             except:
                 self._ctrls[ctrl_instance].size = (size/10.00)
 
+    def set_ctrl_axis(self, axis):
+        for ctrl_instance in self._ctrls:
+            self._ctrls[ctrl_instance].axis = axis
+
     def set_ctrl_types(self, ctrl_type):
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].type = ctrl_type
-            log.info(self._ctrls[ctrl_instance].type)
 
     def set_ctrl_matrices(self):
         if not self._joints:
@@ -236,19 +248,18 @@ class ControlBuilder(object):
 
                 except Exception as ex:
                     log.error(ex)
-                    pass
+
 
                 log.info(ctrl_parent)
 
-
-
                 log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
-                pass
-
 
             self._ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
 
     def delete_ctrls(self):
+        if not self._ctrls:
+            return
+
         for ctrl_instance in self._ctrls.values():
             ctrl_instance.delete()  # deleting the shape
             del ctrl_instance  # deleting the class instance

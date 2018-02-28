@@ -7,6 +7,7 @@ import os
 import logging
 import pymel.core as pymel
 from Projects.HacknSlash.python.project.libs import build_fk_ctrls
+from Projects.HacknSlash.python.project.libs import shapes
 reload(build_fk_ctrls)
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,10 @@ FormClass, BaseClass = loadUiType(ui_file_name)
 
 
 class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
+    """
+    Note: Remove callbacks whenever executing code that changes the selection.
+    """
+
     def __init__(self):
         maya_main = None
         try:
@@ -30,6 +35,11 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.setupUi(self)
         self.setWindowTitle(type(self).__name__)
         self.resize(self.vlayout.sizeHint())  # Resize to widgets
+        # Get shape list
+        self.shape_list = shapes.remove_file_extension()
+        self.cb_shape.insertItems(0, self.shape_list)
+
+        self.axis = 'x'
 
         # Ctrl_builder class
         self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
@@ -60,10 +70,28 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.ctrl_builder.set_ctrl_names()
         self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
         self.ctrl_builder.set_ctrl_matrices()
+        self.ctrl_builder.set_ctrl_axis(self.axis)
+
+        self.remove_callbacks()
         self.ctrl_builder.create_ctrls()
+        self.create_callbacks()
         self.ctrl_builder.get_ctrl_distance()
         self.ctrl_builder.set_ctrl_sizes(self.sldr.value())
 
+    @QtCore.Slot()
+    def on_btn_axis_x_clicked(self):
+        self.axis = 'x'
+        self.refresh()
+
+    @QtCore.Slot()
+    def on_btn_axis_y_clicked(self):
+        self.axis = 'y'
+        self.refresh()
+
+    @QtCore.Slot()
+    def on_btn_axis_z_clicked(self):
+        self.axis = 'z'
+        self.refresh()
 
     @QtCore.Slot()
     def on_sldr_valueChanged(self):

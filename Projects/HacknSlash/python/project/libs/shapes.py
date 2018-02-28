@@ -1,4 +1,17 @@
 import pymel.core as pymel
+import os
+import re
+from definitions import ROOT_DIR
+
+
+shapes_dir = os.path.join(ROOT_DIR, 'Projects\\HacknSlash\\Shapes')
+
+shape_files = os.listdir(shapes_dir)
+
+
+def remove_file_extension():
+    return [x.replace('.ma', '') for x in shape_files]
+    pass
 
 
 def maintain_selection(func):
@@ -13,89 +26,50 @@ def maintain_selection(func):
     return wrapper
 
 @maintain_selection
-def make_circle(name):
-    circle = pymel.circle(name=name, normal=(1, 0, 0))[0]
-    pymel.rename(circle, name)
-    return circle
+def make_shape(shape_type, name, axis):
+    """
+    Read maya ascii file and split it up by the contained mel commands.
+    For every command that sets the attribute of a nurbs curve- Create a nurbs curve and set it's
+    vertices based on that set attr mel command.
+    This function also creates a single transform to parent the nurbs curves under.
 
-@maintain_selection
-def make_cube_ctrl(name):
-    pos = [(-1, 1, 1), (-1, 1, -1), (1, 1, -1), (1, 1, 1), (-1, 1, 1), (-1, -1, 1), (-1, -1, -1),
-           (-1, 1, -1), (1, 1, -1), (1, -1, -1), (-1, -1, -1), (-1, -1, 1), (1, -1, 1), (1, 1, 1), (1, -1, 1),
-           (1, -1, -1)]
-    knot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    ctrl = pymel.curve(n=name, d=1, p=pos, k=knot)
-    return ctrl
+    :param shape_type: Shape that we want to make. IE: Circle.
+    :param name: Name of the new shape.
+    :return: transform node of the shape.
+    """
 
-@maintain_selection
-def make_ik_fk_swich_ctrl(name):
-    pos = [(-9.088573, 11.596919, 0), (-9.088573, 18.149395, 0), (-8.178507, 18.149395, 0), (-8.178507, 11.596919, 0),
-           (-9.088573, 11.596919, 0), (-6.449382, 11.596919, 0), (-6.449382, 18.149395, 0),
-           (-5.539316, 18.149395, 0), (-5.539316, 14.917238, 0), (-5.539316, 11.596919, 0), (-6.449382, 11.596919, 0),
-           (-5.539316, 11.596919, 0), (-5.539316, 14.925771, 0), (-2.900124, 18.149395, 0), (-1.958775, 18.149395, 0),
-           (-4.511226, 15.030996, 0), (-1.523649, 11.596919, 0), (-2.718112, 11.596919, 0), (-5.539316, 14.917238, 0),
-           (-2.718112, 11.596919, 0), (-1.523649, 11.596919, 0), (-0.533953, 11.596919, 0), (-0.533953, 18.149395, 0),
-           (3.106311, 18.149395, 0), (3.106311, 17.421343, 0), (0.376113, 17.421343, 0), (0.376113, 15.237184, 0),
-           (2.671186, 15.237184, 0), (2.671186, 14.50913, 0), (0.376113, 14.50913, 0), (0.376113, 11.596919, 0),
-           (-0.533953, 11.596919, 0), (0.376113, 11.596919, 0), (4.380404, 11.596919, 0), (4.380404, 18.149395, 0),
-           (5.29047, 18.149395, 0), (5.29047, 14.917238, 0), (7.929662, 18.149395, 0), (8.871011, 18.149395, 0),
-           (6.318559, 15.030996, 0), (9.306136, 11.596919, 0), (8.111673, 11.596919, 0), (5.29047, 14.925771, 0),
-           (5.29047, 11.596919, 0), (4.380404, 11.596919, 0)]
+    for shape in shape_files:
+        if shape_type + '.ma' == shape:
+            shape_file = os.path.join(shapes_dir, shape)
 
-    knot = (
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44)
-    ctrl = pymel.curve(n=name, d=1, p=pos, k=knot)
-    set_transform(ctrl, size=1, offset=(0, 0, 0))
-    return ctrl
+            transform_node = pymel.createNode('transform', name=name)
+            with open(shape_file, 'r') as s:
+                mel_data = s.read().split(';')
+                for mel_command in mel_data:
+                    if mel_command.find('setAttr ".cc" -type "nurbsCurve"') != -1:
+                        shape = pymel.createNode('nurbsCurve', name=name + 'Shape', parent=transform_node)
+                        pymel.mel.eval('setAttr -k off ".v";')
+                        pymel.mel.eval(mel_command + ';')
 
-@maintain_selection
-def make_diamond_ctrl(name):
-    ctrl = pymel.curve(n=name, d=1, p=[(0, 0, 1), (0, 1, 0), (0, 0, -1), (0, -1, 0), (0, 0, 1)], k=[0, 1, 2, 3, 4])
-    return ctrl
+            set_transform(transform_node, axis)
 
-@maintain_selection
-def make_foot_ctrl(name):
-    ctrl = pymel.circle(r=1, nr=(0, 1, 0), n=name)[0]
-    pos = [(8.0, 0.0, -9.0), (-19.0, 0.0, -4.0), (-22.0, 0.0, -3.0), (-23.0, 0.0, 0.0),
-           (-22.0, 0.0, 3.0), (-19.0, 0.0, 4.0), (8.0, 0.0, 9.0), (12.0, 0.0, 0.0)]
-
-    for i in range(len(ctrl.cv)):
-        pymel.move(ctrl.cv[i], pos[i], ws=True)
-
-    ctrl.setScale([.1, .1, .1])
-    pymel.makeIdentity(ctrl, apply=True)
-
-    return ctrl
+            return transform_node
+    return None
 
 
-def set_transform(ctrl, size, offset):
-    if len(str(size).split(',')) == 1:
-        size = size, size, size
+def set_transform(ctrl, axis):
 
-    ctrl.scale.set(size)
-    ctrl.translate.set(offset)
+    if axis == 'x':
+        ctrl.setRotation((90, 0, 0))
+
+    if axis == 'y':
+        ctrl.setRotation((0, 0, 0))
+
+    if axis == 'z':
+        ctrl.setRotation((0, 0, 90))
 
     pymel.makeIdentity(ctrl, a=True, t=1, r=1, s=1, n=0, pn=1)
     ctrl.scalePivot.translate.set(0, 0, 0)
     ctrl.rotatePivot.translate.set(0, 0, 0)
-
-
-def make_shape(type, name):
-
-    if type == 'Circle':
-        return make_circle(name)
-
-    if type == 'Diamond':
-        return make_diamond_ctrl(name)
-
-    if type == 'Foot':
-        return make_foot_ctrl(name)
-
-    if type == 'Cube':
-        return make_cube_ctrl(name)
-
-    if type == 'IKFK':
-        return make_ik_fk_swich_ctrl(name)
 
 
