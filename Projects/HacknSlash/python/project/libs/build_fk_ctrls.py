@@ -209,51 +209,56 @@ class ControlBuilder(object):
                                                                         consts.ALL['CTRL']])
 
     def publish_ctls(self):
+        """
+        If joints or objects are listed, this will parent constrain them to the corresponding controllers.
+        The self._ctrls dict is flushed to release the controllers from the tool.
+        :return:
+        """
+
         for ctrl_instance in self._ctrls:
-            try:
-                self._ctrls[ctrl_instance].freeze_transforms()
-                pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
-            except Exception as ex:
-                log.error(['parent constraint failed', ex])
-                pass
-
-            # Find the parent controller by name and parent the control to it.
-            if self._joint_info[ctrl_instance]['jnt_parent']:
-                info = naming_utils.ItemInfo(self._joint_info[ctrl_instance]['jnt_parent'])
-                ctrl_parent = naming_utils.concatenate([info.side,
-                                                        info.base_name,
-                                                        info.joint_name,
-                                                        info.index,
-                                                        consts.ALL['CTRL']])
+            self._ctrls[ctrl_instance].freeze_transforms()
+            if self._joint_info:  # If no joints are listed, skip.
+                    # Find the parent controller by name and parent the control to it.
                 try:
-                    # todo: write a parent setter in the base class.
-                    pymel.parent(self._ctrls[ctrl_instance].object, ctrl_parent)
-
+                    pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
                 except Exception as ex:
-                    log.error(ex)
+                    log.error(['parent constraint failed', ex])
                     pass
 
-            # find the children controllers and parent them to the control.
-            for child in self._joint_info[ctrl_instance]['jnt_children']:
-                info = naming_utils.ItemInfo(child)
-                ctrl_child = naming_utils.concatenate([info.side,
-                                                       info.base_name,
-                                                       info.joint_name,
-                                                       info.index,
-                                                       consts.ALL['CTRL']])
+                if self._joint_info[ctrl_instance]['jnt_parent']:
+                    info = naming_utils.ItemInfo(self._joint_info[ctrl_instance]['jnt_parent'])
+                    ctrl_parent = naming_utils.concatenate([info.side,
+                                                            info.base_name,
+                                                            info.joint_name,
+                                                            info.index,
+                                                            consts.ALL['CTRL']])
+                    try:
+                        # todo: write a parent setter in the base class.
+                        pymel.parent(self._ctrls[ctrl_instance].object, ctrl_parent)
 
-                try:
-                    # todo: write a parent setter in the base class.
-                    pymel.parent(ctrl_child, self._ctrls[ctrl_instance].object)
+                    except Exception as ex:
+                        log.error(ex)
+                        pass
 
-                except Exception as ex:
-                    log.error(ex)
+                # find the children controllers and parent them to the control.
+                for child in self._joint_info[ctrl_instance]['jnt_children']:
+                    info = naming_utils.ItemInfo(child)
+                    ctrl_child = naming_utils.concatenate([info.side,
+                                                           info.base_name,
+                                                           info.joint_name,
+                                                           info.index,
+                                                           consts.ALL['CTRL']])
 
+                    try:
+                        # todo: write a parent setter in the base class.
+                        pymel.parent(ctrl_child, self._ctrls[ctrl_instance].object)
+
+                    except Exception as ex:
+                        log.error(ex)
 
                 log.info(ctrl_parent)
 
                 log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
-
             self._ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
 
     def delete_ctrls(self):

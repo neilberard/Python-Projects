@@ -37,9 +37,11 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.resize(self.vlayout.sizeHint())  # Resize to widgets
         # Get shape list
         self.shape_list = shapes.remove_file_extension()
+        self.cb_shape.blockSignals(True)  # Block combobox from sending signals when updating index.
         self.cb_shape.insertItems(0, self.shape_list)
+        self.cb_shape.blockSignals(False)
 
-        self.axis = 'x'
+        self.axis = 'x'  # Orientation of the controller
 
         # Ctrl_builder class
         self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
@@ -65,6 +67,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
     def refresh(self, *args):
+
         self.ctrl_builder.delete_ctrls()
         self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
         self.ctrl_builder.set_ctrl_names()
@@ -115,7 +118,6 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.ctrl_builder.publish_ctls()
         self.close()
 
-
     @QtCore.Slot()
     def closeEvent(self, *args):
         log.info('closing')
@@ -131,6 +133,7 @@ def showUI():
                 pass
     BuilderWindow = ControlBuilderWindow()
     BuilderWindow.show()
+    return BuilderWindow
 
 
 """
