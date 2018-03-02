@@ -38,21 +38,16 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
     @QtCore.Slot()
     def on_btn_unlock_attr_clicked(self):
         attr_utils.unlock_attributes(nodes=pymel.selected())
-        log.info('on_btn_unlock_attr_clicked, CLICKED')
 
     @QtCore.Slot()
     def on_btn_fk_ctrls_clicked(self):
-
-        ctrl_builder_window.showUI()
-
-        # build_fk_ctrls.build_fk_ctrls(joints=pymel.selected())
-        log.info('on_btn_fk_ctrls_clicked, CLICKED')
+        builder_window = ctrl_builder_window.showUI()
 
     @QtCore.Slot()
     def on_btn_rename_clicked(self):
         from Projects.HacknSlash.python.ui import rename_tools_window
         rename_tools_window.showUI()
-        log.info('on_btn_unlock_attr_clicked, CLICKED')
+
 
     @QtCore.Slot()
     def on_btn_build_ikfk_clicked(self):
