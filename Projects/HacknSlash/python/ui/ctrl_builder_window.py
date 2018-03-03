@@ -83,6 +83,13 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.ctrl_builder.set_ctrl_sizes(self.sldr.value()/5)
 
     @QtCore.Slot()
+    def on_chk_parent_constraint_stateChanged(self):
+        if self.chk_parent_constraint.checkState() == QtCore.Qt.CheckState.Checked:
+            self.ctrl_builder.parent_constraint = True
+        else:
+            self.ctrl_builder.parent_constraint = False
+
+    @QtCore.Slot()
     def on_btn_axis_x_clicked(self):
         self.axis = 'x'
         self.refresh()

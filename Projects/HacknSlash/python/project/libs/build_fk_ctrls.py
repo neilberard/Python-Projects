@@ -106,7 +106,7 @@ class ControlBuilder(object):
     """
 
     def __init__(self, joints=None):
-
+        self.parent_constraint = True
         self._joints = joints
         self._ctrls = {}
         self._joint_info = {}
@@ -213,16 +213,15 @@ class ControlBuilder(object):
         """
         If joints or objects are listed, this will parent constrain them to the corresponding controllers.
         The self._ctrls dict is flushed to release the controllers from the tool.
-        :return:
         """
 
-
+        # Parent controllers
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].freeze_transforms()
             if self._joint_info:  # If no joints are listed, skip.
                 # Find the parent controller by name and parent the control to it.
-
-                pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
+                if self.parent_constraint:
+                    pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
 
                 if self._joint_info[ctrl_instance]['jnt_parent']:
 
@@ -257,7 +256,6 @@ class ControlBuilder(object):
                     except Exception as ex:
                         # log.error(ex)
                         pass
-
 
                 log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
 

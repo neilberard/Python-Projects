@@ -12,12 +12,23 @@ class ItemInfo(object):
         self._joint_name = []
         self._side = []
         self._type = []
-        self._base_name = []
+        self._region = []  # Arm, Leg, Torso
+        self._base_name = []  # Any name that is not in consts.
         self.name_list = str_name.split('_')
         self._index = []
 
         # Gather name info from str_name.
         for name in self.name_list:
+            # REGION
+            if name in consts.ARM:
+                self._region = consts.ALL['Arm']
+            elif name in consts.LEG:
+                self._region = consts.ALL['Leg']
+            elif name in consts.TORSO:
+                self._region = consts.ALL['Torso']
+            elif name in consts.HAND:
+                self._region = consts.ALL['Hand']
+
             # SIDE
             if name in consts.SIDE:
                 self._side = name
@@ -25,10 +36,7 @@ class ItemInfo(object):
             if name in consts.TYPE:
                 self._type = name
             # JOINT
-            if name in consts.TORSO or \
-               name in consts.ARM or \
-               name in consts.HAND or \
-               name in consts.LEG and \
+            if self._region and \
                name not in consts.IK:
                 self._joint_name = name
             # BASENAME
@@ -38,13 +46,18 @@ class ItemInfo(object):
             # INDEX
             if name in consts.INDEX:  # This could be single letters up to 'K' or numbers.
                 self._index = name
-
             try:  # If name is a number, set index to name.
                 self._index = int(name)
             except:
                 pass
 
+    @property
+    def region(self):
+        return self._region
 
+    @region.setter
+    def region(self, str):
+        self._region = str
 
     @property
     def side(self):
@@ -97,11 +110,13 @@ def concatenate(str_list):
 """Test Code"""
 
 if __name__ == '__main__':
+    import pymel.core as pymel
 
-    name_info = ItemInfo('newthing_Elbow_JNT')
+    info = ItemInfo(pymel.selected()[0])
+    print info.region
 
-    print concatenate([name_info.base_name, name_info.joint_name])
-    print name_info.type
+
+
 
 
 
