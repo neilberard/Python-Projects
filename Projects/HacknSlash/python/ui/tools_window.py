@@ -48,11 +48,13 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
         from Projects.HacknSlash.python.ui import rename_tools_window
         rename_tools_window.showUI()
 
-
     @QtCore.Slot()
     def on_btn_build_ikfk_clicked(self):
         joint_utils.build_ik_fk_joints(joints=pymel.selected())
-        log.info('on_btn_build_ikfk_clicked, CLICKED')
+
+    @QtCore.Slot()
+    def on_btn_offset_transforms_clicked(self):
+        joint_utils.create_offset_groups(objects=pymel.selected())
 
 
 def showUI():

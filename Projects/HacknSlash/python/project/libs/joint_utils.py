@@ -1,19 +1,31 @@
 import pymel.core as pymel
+from Projects.HacknSlash.python.project.libs import naming_utils
+from Projects.HacknSlash.python.project.libs import consts
 import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def build_ik_fk_joints(joints, fk_suffix='_FK', ik_suffix='_IK'):
+def build_ik_fk_joints(joints):
     """
     Create IKFK skeletons for selected joints and parent constrains base joints to the two targets.
     :param joints:
     """
 
     for jnt in joints:
-        fk_name = jnt.name() + fk_suffix  # todo: add a naming function.
-        ik_name = jnt.name() + ik_suffix
+        info = naming_utils.ItemInfo(jnt)
+
+        fk_name = naming_utils.concatenate([info.side,
+                                            info.base_name,
+                                            info.joint_name,
+                                            consts.ALL['FK']])
+
+        ik_name = naming_utils.concatenate([info.side,
+                                            info.base_name,
+                                            info.joint_name,
+                                            consts.ALL['IK']])
+
         # Getting joint info.
         jnt_matrix = jnt.getMatrix(worldSpace=True)
         jnt_children = jnt.getChildren()
@@ -23,7 +35,6 @@ def build_ik_fk_joints(joints, fk_suffix='_FK', ik_suffix='_IK'):
         # Making IKFK.
         pymel.select(None)
         fk_jnt = pymel.joint(name=fk_name, radius=jnt_radius)
-
         fk_jnt.setMatrix(jnt_matrix, worldSpace=True)
 
         pymel.select(None)
@@ -33,10 +44,7 @@ def build_ik_fk_joints(joints, fk_suffix='_FK', ik_suffix='_IK'):
         # Parent Constraint
         pymel.parentConstraint([fk_jnt, ik_jnt, jnt])
 
-        """
-        Rebuild Hierachy 
-        """
-
+        # Rebuild Hierarchy
         if jnt_parent:  # If a parent FK jnt exists, parent this fk jnt to it.
             fk_parent_name = fk_jnt.name().replace(jnt.name(), jnt_parent.name())
             ik_parent_name = ik_jnt.name().replace(jnt.name(), jnt_parent.name())
@@ -78,3 +86,38 @@ def build_ik_fk_joints(joints, fk_suffix='_FK', ik_suffix='_IK'):
                 #     child_ctrl.setParent(ctrl)
                 # except pymel.MayaNodeError:
                 #     pass
+
+
+def create_offset_groups(objects):
+    """
+    Parents Each object to a group node with the object's transforms.
+    :param objects: list of pymel transforms to group.
+    :return: List of offset groups.
+    """
+    if not isinstance(objects, list):
+        objects = [objects]
+
+    offset_groups = []
+
+    for transform in objects:
+        log.info(transform)
+        info = naming_utils.ItemInfo(transform)
+        group_name = naming_utils.concatenate([info.side,
+                                               info.base_name,
+                                               info.joint_name,
+                                               consts.ALL['GRP']])
+
+        transform_parent = transform.getParent()
+        transform_matrix = transform.getMatrix(worldSpace=True)
+
+        new_group = pymel.group(empty=True, name=group_name)
+        new_group.setMatrix(transform_matrix, worldSpace=True)
+
+        if transform_parent:
+            new_group.setParent(transform_parent)
+        new_group.addChild(transform)
+
+        offset_groups.append(new_group)
+
+    return offset_groups
+

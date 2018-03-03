@@ -8,6 +8,7 @@ import logging
 import pymel.core as pymel
 from Projects.HacknSlash.python.project.libs import build_fk_ctrls
 from Projects.HacknSlash.python.project.libs import shapes
+
 reload(build_fk_ctrls)
 
 log = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.ctrl_builder.create_ctrls()
         self.create_callbacks()
         self.ctrl_builder.get_ctrl_distance()
-        self.ctrl_builder.set_ctrl_sizes(self.sldr.value())
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value()/5)
 
     @QtCore.Slot()
     def on_btn_axis_x_clicked(self):
@@ -98,7 +99,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_sldr_valueChanged(self):
-        self.ctrl_builder.set_ctrl_sizes(self.sldr.value())
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value()/5)
 
     @QtCore.Slot()
     def on_cb_shape_currentIndexChanged(self):

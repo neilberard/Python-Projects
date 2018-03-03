@@ -4,9 +4,11 @@ import maya.OpenMaya as om
 from Projects.HacknSlash.python.project.libs import consts
 from Projects.HacknSlash.python.project.libs import naming_utils
 from Projects.HacknSlash.python.project.libs import shapes
+from Projects.HacknSlash.python.project.libs import joint_utils
 reload(shapes)
 reload(naming_utils)
 reload(consts)
+reload(joint_utils)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -164,7 +166,6 @@ class ControlBuilder(object):
                 distance_tally.append(distanceA.length())
                 self._joint_info[index]['distance_sum'] = distanceA.length()
 
-
             for child in self._joint_info[index]['jnt_children']:
                 child_vector = om.MVector(child.getTranslation(space='world'))
                 distanceB = om.MVector(jnt_vector - child_vector)
@@ -176,7 +177,7 @@ class ControlBuilder(object):
 
             self._joint_info[index]['distance_sum'] = sum(distance_tally)/len(distance_tally)
 
-    def set_ctrl_sizes(self, size=100.00):
+    def set_ctrl_sizes(self, size=10):
 
         for ctrl_instance in self._ctrls:
             try:
@@ -215,29 +216,29 @@ class ControlBuilder(object):
         :return:
         """
 
+
         for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance].freeze_transforms()
             if self._joint_info:  # If no joints are listed, skip.
-                    # Find the parent controller by name and parent the control to it.
-                try:
-                    pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
-                except Exception as ex:
-                    log.error(['parent constraint failed', ex])
-                    pass
+                # Find the parent controller by name and parent the control to it.
+
+                pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
 
                 if self._joint_info[ctrl_instance]['jnt_parent']:
-                    info = naming_utils.ItemInfo(self._joint_info[ctrl_instance]['jnt_parent'])
-                    ctrl_parent = naming_utils.concatenate([info.side,
-                                                            info.base_name,
-                                                            info.joint_name,
-                                                            info.index,
-                                                            consts.ALL['CTRL']])
+
                     try:
+                        info = naming_utils.ItemInfo(self._joint_info[ctrl_instance]['jnt_parent'])
+                        ctrl_parent = naming_utils.concatenate([info.side,
+                                                                info.base_name,
+                                                                info.joint_name,
+                                                                info.index,
+                                                                consts.ALL['CTRL']])
+
                         # todo: write a parent setter in the base class.
                         pymel.parent(self._ctrls[ctrl_instance].object, ctrl_parent)
 
                     except Exception as ex:
-                        log.error(ex)
+                        # log.error(ex)
                         pass
 
                 # find the children controllers and parent them to the control.
@@ -254,11 +255,18 @@ class ControlBuilder(object):
                         pymel.parent(ctrl_child, self._ctrls[ctrl_instance].object)
 
                     except Exception as ex:
-                        log.error(ex)
+                        # log.error(ex)
+                        pass
 
-                log.info(ctrl_parent)
 
                 log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
+
+        # Add offsets
+        for ctrl_instance in self._ctrls:
+            joint_utils.create_offset_groups(self._ctrls[ctrl_instance].object)
+
+        # Removing controls
+        for ctrl_instance in self._ctrls:
             self._ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
 
     def delete_ctrls(self):
@@ -266,10 +274,17 @@ class ControlBuilder(object):
             return
 
         for ctrl_instance in self._ctrls.values():
-            ctrl_instance.delete()  # deleting the shape
+            if ctrl_instance:
+                ctrl_instance.delete()  # deleting the shape
             del ctrl_instance  # deleting the class instance
 
         self._ctrls = {}  # resetting the dict
+
+
+
+
+
+
 
 
 # def build_fk_ctrls(joints, ctrl_type='circle', ctrl_name='Fk', ctrl_size=1):
