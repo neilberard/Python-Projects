@@ -14,11 +14,16 @@ HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky', 'Hand']
 
 SIDE = ['L', 'R']
 
+# KEYS for item Tags.
+TAGS = ['Side', 'Region', 'Type', 'Utility']
+
 # To prevent a conflict with Left and Right naming, use numbers for indexes above 11.
 INDEX = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
 
-TYPE = ['GRP', 'JNT', 'IK', 'FK', 'CTRL', 'HDL', 'Offset', 'Annotation', 'LOC', 'Utility', 'Condition', 'Constraint',
-        'Main', 'Switch', 'IKFK']
+TYPE = ['GRP', 'JNT', 'CTRL', 'HDL', 'Offset', 'Annotation', 'LOC', 'Utility', 'Condition', 'Constraint',
+        'Main', 'Switch']
+
+UTILITY = ['IK', 'FK', 'IKFK']  # What does the object deal with
 
 IK = ['Hand', 'Pole', 'Foot']
 

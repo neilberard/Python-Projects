@@ -1,6 +1,5 @@
 from Projects.HacknSlash.python.project.libs import consts
 reload(consts)
-import itertools
 
 
 class ItemInfo(object):
@@ -19,14 +18,18 @@ class ItemInfo(object):
 
         # Gather name info from str_name.
         for name in self.name_list:
-            # REGION
+            # REGION and JOINT NAME
             if name in consts.ARM:
+                self.joint_name = name
                 self._region = consts.ALL['Arm']
             elif name in consts.LEG:
+                self.joint_name = name
                 self._region = consts.ALL['Leg']
             elif name in consts.TORSO:
+                self.joint_name = name
                 self._region = consts.ALL['Torso']
             elif name in consts.HAND:
+                self.joint_name = name
                 self._region = consts.ALL['Hand']
 
             # SIDE
@@ -34,13 +37,10 @@ class ItemInfo(object):
                 self._side = name
             # TYPE
             if name in consts.TYPE:
-                self._type = name
-            # JOINT
-            if self._region and \
-               name not in consts.IK:
-                self._joint_name = name
+                self._type.append(name)
             # BASENAME
-            if name not in consts.ALL.values() and name not in consts.INDEX:
+            if name not in consts.ALL.values() and \
+               name not in consts.INDEX:
                 self._base_name = name
 
             # INDEX
@@ -100,11 +100,60 @@ class ItemInfo(object):
         self._index = str
 
 
-
-
 def concatenate(str_list):
     string = '_'.join([x for x in str_list if x])
     return string
+
+
+def match_tagged_items(objects, tags):
+    """
+    Finds objects with matching attributes/values (tags) as tag_dictionary.
+    :param objects: Any Maya object.
+    :param tags: Type dict. Example {'Region': 'Arm', 'Side': 'R', 'Type': 'IK'}
+    :return: list of matching objects.
+    """
+
+    object_list = []
+
+    for obj in objects:
+        output = obj
+        for key in tags.keys():
+            if obj.hasAttr(key) and obj.getAttr(key) == tags[key]:
+                pass
+            else:
+                output = None  # Could not find attribute or attribute value did not match.
+        if output:
+            object_list.append(output)
+
+    return object_list
+
+
+def add_tags(obj, tags):
+    """
+    :param obj: Maya object to add string attributes to.
+    :param tags: Example: {'Region': 'Arm', 'Side': 'R', 'Type': 'IK'}
+    :return:
+    """
+    for key in tags.keys():
+        if not obj.hasAttr(key):
+            obj.addAttr(key, type='string', keyable=False)
+            obj.setAttr(key, tags[key])
+
+
+def list_tags(obj):
+    obj_attributes = {}
+
+    for attribute in obj.listAttr():
+        if attribute.attrName() in consts.TAGS:
+            obj_attributes[attribute.attrName()] = attribute.get()
+
+    for tag in consts.TAGS:
+        if tag not in obj_attributes.keys():
+            obj_attributes[tag] = []
+
+    return obj_attributes
+
+
 
 
 """Test Code"""
@@ -112,8 +161,8 @@ def concatenate(str_list):
 if __name__ == '__main__':
     import pymel.core as pymel
 
-    info = ItemInfo(pymel.selected()[0])
-    print info.region
+    print list_tags(obj=pymel.PyNode('R_Shoulder_Constraint'))
+
 
 
 

@@ -12,7 +12,6 @@ def build_ik_fk_joints(joints):
     Create IKFK skeletons for selected joints and parent constrains base joints to the two targets.
     :param joints:
     """
-
     for jnt in joints:
         info = naming_utils.ItemInfo(jnt)
 
@@ -33,16 +32,41 @@ def build_ik_fk_joints(joints):
         jnt_radius = jnt.radius.get()
 
         # Making IKFK.
+
+        # FK Joint
         pymel.select(None)
         fk_jnt = pymel.joint(name=fk_name, radius=jnt_radius)
         fk_jnt.setMatrix(jnt_matrix, worldSpace=True)
 
+        # FK Tags
+        naming_utils.add_tags(fk_jnt,
+                              {'Region': info.region,
+                               'Side': info.side,
+                               'Utility': consts.ALL['FK']})
+
+        # IK Joint
         pymel.select(None)
         ik_jnt = pymel.joint(name=ik_name, radius=jnt_radius)
         ik_jnt.setMatrix(jnt_matrix, worldSpace=True)
+        # IK Tags
+        naming_utils.add_tags(ik_jnt,
+                              {'Region': info.region,
+                               'Side': info.side,
+                               'Utility': consts.ALL['IK']})
 
+        # Parent Constraint Name
+        constraint_name = naming_utils.concatenate([info.side,
+                                                    info.base_name,
+                                                    info.joint_name,
+                                                    consts.ALL['Constraint']])
         # Parent Constraint
-        pymel.parentConstraint([fk_jnt, ik_jnt, jnt])
+        parent_constraint = pymel.parentConstraint([fk_jnt, ik_jnt, jnt], name=constraint_name)
+
+        # Adding Constraint Tags
+        naming_utils.add_tags(parent_constraint,
+                              {'Region': info.region,
+                               'Side': info.side,
+                               'Utility': consts.ALL['IKFK']})
 
         # Rebuild Hierarchy
         if jnt_parent:  # If a parent FK jnt exists, parent this fk jnt to it.

@@ -9,13 +9,13 @@ import pymel.core as pymel
 
 # Libs
 from Projects.HacknSlash.python.interop.utils import attr_utils
-from Projects.HacknSlash.python.project.libs import build_fk_ctrls
+from Projects.HacknSlash.python.project.libs import build_ctrls
 from Projects.HacknSlash.python.project.libs import joint_utils
 from Projects.HacknSlash.python.ui import ctrl_builder_window
 
 reload(ctrl_builder_window)
 reload(attr_utils)
-reload(build_fk_ctrls)
+reload(build_ctrls)
 reload(joint_utils)
 
 log = logging.getLogger(__name__)

@@ -6,10 +6,10 @@ import maya.OpenMaya as OpenMaya
 import os
 import logging
 import pymel.core as pymel
-from Projects.HacknSlash.python.project.libs import build_fk_ctrls
+from Projects.HacknSlash.python.project.libs import build_ctrls
 from Projects.HacknSlash.python.project.libs import shapes
 
-reload(build_fk_ctrls)
+reload(build_ctrls)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -45,7 +45,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.axis = 'x'  # Orientation of the controller
 
         # Ctrl_builder class
-        self.ctrl_builder = build_fk_ctrls.ControlBuilder(pymel.selected())
+        self.ctrl_builder = build_ctrls.ControlBuilder(pymel.selected())
 
         self.refresh()
         self.create_callbacks()
