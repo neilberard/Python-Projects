@@ -51,7 +51,7 @@ def make_switch_utility(switch):
         switch_utility = pymel.PyNode(switch_utility_name)
 
     # Add Tags to Switch Utility
-    naming_utils.add_tags(switch,
+    naming_utils.add_tags(switch_utility,
                           {'Side': switch_info.side,
                            'Region': switch_info.region,
                            'Type': consts.ALL['Utility'],
@@ -79,13 +79,17 @@ def connect_switch_utility(switch):
              'Side': switch_tags['Side'],
              'Utility': switch_tags['Utility']}
 
+    match_util = naming_utils.match_tagged_items(objects=pymel.ls(type='plusMinusAverage'), tags=match)[0]
+    print match_util
+
     constraints = naming_utils.match_tagged_items(objects=pymel.ls(type='parentConstraint'), tags=match)
     for obj in constraints:
-        switch.IKFK.connect(obj.w0)
+        try:
+            switch.IKFK.connect(obj.w0)
 
-
-
-
+        except:
+            pass
+        match_util.output1D.connect(obj.w1)
 
 
 # '''Connect IK FK Switch to joint Orient Constraints'''
