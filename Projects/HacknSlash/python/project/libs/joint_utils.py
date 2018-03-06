@@ -113,13 +113,19 @@ def rebuild_joint_chain(jnts, name):
         jnt_children = jnt.getChildren()
         jnt_parent = jnt.getParent()
 
-        # Making IKFK.
+        # Unparent.
+        jnt.setParent(None)
+        for child in jnt_children:
+            child.setParent(None)
 
-
-
-        # FK Joint
+        # Make Joint
+        new_jnt = pymel.duplicate(jnt, name=new_name)[0]
         pymel.select(None)
-        new_jnt = pymel.joint(name=new_name)
+
+        # Re-Parent original
+        jnt.setParent(jnt_parent)
+        for child in jnt_children:
+            child.setParent(jnt)
 
         new_joints.append(new_jnt)
 
@@ -150,13 +156,6 @@ def rebuild_joint_chain(jnts, name):
                     new_child_jnt.setParent(new_jnt)
                 except pymel.MayaNodeError:
                     pass  # Couldn't find a parent. Move on.
-
-    for idx, jnt in enumerate(jnts):
-        new_joints[idx].setOrientation(jnt.getOrientation())
-        new_joints[idx].setTranslation(jnt.getTranslation(space='world'), space='world')
-        new_joints[idx].setRotation(jnt.getRotation())
-        new_joints[idx].rotateOrder.set(jnt.rotateOrder.get())
-        new_joints[idx].setRadius(jnt.getRadius())
 
     return new_joints
 
