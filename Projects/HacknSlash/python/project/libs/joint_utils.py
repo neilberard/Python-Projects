@@ -7,109 +7,174 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def build_ik_fk_joints(joints):
-    """
-    Create IKFK skeletons for selected joints and parent constrains base joints to the two targets.
-    :param joints:
-    """
-    for jnt in joints:
+# def build_ik_fk_joints(joints):
+#     """
+#     Create IKFK skeletons for selected joints and parent constrains base joints to the two targets.
+#     :param joints:
+#     """
+#
+#     sets = []
+#
+#     for set in [consts.ALL['FK'], consts.ALL['IK']]:
+#
+#         # Create joints
+#         new_joints = []
+#
+#         for jnt in joints:
+#             info = naming_utils.ItemInfo(jnt)
+#
+#             new_name = naming_utils.concatenate([info.side,
+#                                                 info.base_name,
+#                                                 info.joint_name,
+#                                                 set])
+#
+#             # Getting joint info.
+#             jnt_children = jnt.getChildren()
+#             jnt_parent = jnt.getParent()
+#
+#             # Making IKFK.
+#
+#             # FK Joint
+#             pymel.select(None)
+#             new_jnt = pymel.joint(name=new_name)
+#
+#             new_joints.append(new_jnt)
+#
+#             #Tags
+#             naming_utils.add_tags(new_jnt,
+#                                   {'Region': info.region,
+#                                    'Side': info.side,
+#                                    'Utility': set})
+#
+#             # # Parent Constraint Name
+#             # constraint_name = naming_utils.concatenate([info.side,
+#             #                                             info.base_name,
+#             #                                             info.joint_name,
+#             #                                             consts.ALL['Constraint']])
+#             # # Constraint
+#             # orient_constraint = pymel.orientConstraint([fk_jnt, ik_jnt, jnt])
+#             # point_constraint = pymel.pointConstraint([fk_jnt, ik_jnt, jnt])
+#             #
+#             # # Adding Constraint Tags
+#             # naming_utils.add_tags(orient_constraint,
+#             #                       {'Region': info.region,
+#             #                        'Side': info.side,
+#             #                        'Utility': consts.ALL['IKFK']})
+#             #
+#             # # Adding Constraint Tags
+#             # naming_utils.add_tags(point_constraint,
+#             #                       {'Region': info.region,
+#             #                        'Side': info.side,
+#             #                        'Utility': consts.ALL['IKFK']})
+#
+#
+#
+#             # Rebuild Hierarchy
+#             if jnt_parent:  # If a parent FK jnt exists, parent this fk jnt to it.
+#                 new_parent_name = new_jnt.name().replace(jnt.name(), jnt_parent.name())
+#
+#                 # FK joints
+#                 try:
+#                     new_parent_jnt = pymel.PyNode(new_parent_name)
+#                     new_jnt.setParent(new_parent_jnt)
+#                 except pymel.MayaNodeError:
+#                     pass  # Couldn't find a parent. Move on.
+#
+#             if jnt_children:
+#                 for jnt_child in jnt_children:
+#                     new_child_name = new_jnt.name().replace(jnt.name(), jnt_child.name())
+#
+#                     # FK joints
+#                     try:
+#                         new_child_jnt = pymel.PyNode(new_child_name)
+#                         new_child_jnt.setParent(new_jnt)
+#                     except pymel.MayaNodeError:
+#                         pass  # Couldn't find a parent. Move on.
+#
+#         for idx, jnt in enumerate(joints):
+#             new_joints[idx].setOrientation(jnt.getOrientation())
+#             new_joints[idx].setTranslation(jnt.getTranslation())
+#             new_joints[idx].setRotation(jnt.getRotation())
+#             new_joints[idx].setRotationOrder(jnt.getRotationOrder())
+#             new_joints[idx].setRadius(jnt.getRadius())
+
+def rebuild_joint_chain(jnts, name):
+    new_joints = []
+
+    for jnt in jnts:
         info = naming_utils.ItemInfo(jnt)
 
-        fk_name = naming_utils.concatenate([info.side,
-                                            info.base_name,
-                                            info.joint_name,
-                                            consts.ALL['FK']])
-
-        ik_name = naming_utils.concatenate([info.side,
-                                            info.base_name,
-                                            info.joint_name,
-                                            consts.ALL['IK']])
+        new_name = naming_utils.concatenate([info.side,
+                                             info.base_name,
+                                             info.joint_name,
+                                             name])
 
         # Getting joint info.
-        jnt_matrix = jnt.getMatrix(worldSpace=True)
         jnt_children = jnt.getChildren()
         jnt_parent = jnt.getParent()
-        jnt_radius = jnt.radius.get()
 
         # Making IKFK.
 
+
+
         # FK Joint
         pymel.select(None)
-        fk_jnt = pymel.joint(name=fk_name, radius=jnt_radius)
-        fk_jnt.setMatrix(jnt_matrix, worldSpace=True)
+        new_jnt = pymel.joint(name=new_name)
 
-        # FK Tags
-        naming_utils.add_tags(fk_jnt,
+        new_joints.append(new_jnt)
+
+        # Tags
+        naming_utils.add_tags(new_jnt,
                               {'Region': info.region,
                                'Side': info.side,
-                               'Utility': consts.ALL['FK']})
-
-        # IK Joint
-        pymel.select(None)
-        ik_jnt = pymel.joint(name=ik_name, radius=jnt_radius)
-        ik_jnt.setMatrix(jnt_matrix, worldSpace=True)
-        # IK Tags
-        naming_utils.add_tags(ik_jnt,
-                              {'Region': info.region,
-                               'Side': info.side,
-                               'Utility': consts.ALL['IK']})
-
-        # Parent Constraint Name
-        constraint_name = naming_utils.concatenate([info.side,
-                                                    info.base_name,
-                                                    info.joint_name,
-                                                    consts.ALL['Constraint']])
-        # Parent Constraint
-        parent_constraint = pymel.parentConstraint([fk_jnt, ik_jnt, jnt], name=constraint_name)
-
-        # Adding Constraint Tags
-        naming_utils.add_tags(parent_constraint,
-                              {'Region': info.region,
-                               'Side': info.side,
-                               'Utility': consts.ALL['IKFK']})
+                               'Utility': name})
 
         # Rebuild Hierarchy
         if jnt_parent:  # If a parent FK jnt exists, parent this fk jnt to it.
-            fk_parent_name = fk_jnt.name().replace(jnt.name(), jnt_parent.name())
-            ik_parent_name = ik_jnt.name().replace(jnt.name(), jnt_parent.name())
+            new_parent_name = new_jnt.name().replace(jnt.name(), jnt_parent.name())
 
             # FK joints
             try:
-                fk_parent_jnt = pymel.PyNode(fk_parent_name)
-                fk_jnt.setParent(fk_parent_jnt)
-            except pymel.MayaNodeError:
-                pass  # Couldn't find a parent. Move on.
-            # IK joints
-            try:
-                ik_parent_jnt = pymel.PyNode(ik_parent_name)
-                ik_jnt.setParent(ik_parent_jnt)
+                new_parent_jnt = pymel.PyNode(new_parent_name)
+                new_jnt.setParent(new_parent_jnt)
             except pymel.MayaNodeError:
                 pass  # Couldn't find a parent. Move on.
 
         if jnt_children:
             for jnt_child in jnt_children:
-                fk_child_name = fk_jnt.name().replace(jnt.name(), jnt_child.name())
-                ik_child_name = ik_jnt.name().replace(jnt.name(), jnt_child.name())
+                new_child_name = new_jnt.name().replace(jnt.name(), jnt_child.name())
 
                 # FK joints
                 try:
-                    fk_child_jnt = pymel.PyNode(fk_child_name)
-                    fk_child_jnt.setParent(fk_jnt)
-                except pymel.MayaNodeError:
-                    pass  # Couldn't find a parent. Move on.
-                # IK joints
-                try:
-                    ik_child_jnt = pymel.PyNode(ik_child_name)
-                    ik_child_jnt.setParent(ik_jnt)
+                    new_child_jnt = pymel.PyNode(new_child_name)
+                    new_child_jnt.setParent(new_jnt)
                 except pymel.MayaNodeError:
                     pass  # Couldn't find a parent. Move on.
 
+    for idx, jnt in enumerate(jnts):
+        new_joints[idx].setOrientation(jnt.getOrientation())
+        new_joints[idx].setTranslation(jnt.getTranslation(space='world'), space='world')
+        new_joints[idx].setRotation(jnt.getRotation())
+        new_joints[idx].rotateOrder.set(jnt.rotateOrder.get())
+        new_joints[idx].setRadius(jnt.getRadius())
 
-                # try:
-                #     child_ctrl = pymel.PyNode(child_ctrl_name)
-                #     child_ctrl.setParent(ctrl)
-                # except pymel.MayaNodeError:
-                #     pass
+    return new_joints
+
+
+def build_ik_fk_joints(joints):
+    jnt_sets = []
+
+    # Build Joint Chains
+    for index in [consts.ALL['FK'], consts.ALL['IK']]:
+        jnt_sets.append(rebuild_joint_chain(joints, name=index))
+
+    for idx, jnt in enumerate(joints):
+        pymel.pointConstraint([jnt_sets[0][idx], jnt_sets[1][idx], jnt])
+        pymel.orientConstraint([jnt_sets[0][idx], jnt_sets[1][idx], jnt])
+
+
+
+
 
 
 def create_offset_groups(objects):

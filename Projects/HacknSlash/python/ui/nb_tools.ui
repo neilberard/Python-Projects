@@ -41,7 +41,7 @@
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_util">
     <property name="sizePolicy">
@@ -199,7 +199,7 @@
            <x>0</x>
            <y>20</y>
            <width>411</width>
-           <height>55</height>
+           <height>68</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_rig_general">
@@ -212,6 +212,25 @@
           <property name="rightMargin">
            <number>6</number>
           </property>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="btn_rename">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Rename Tools</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QPushButton" name="btn_unlock_attr">
             <property name="sizePolicy">
@@ -238,22 +257,16 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="btn_rename">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="btn_delete_controls">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>0</width>
               <height>30</height>
              </size>
             </property>
             <property name="text">
-             <string>Rename Tools</string>
+             <string>Delete Control Rig</string>
             </property>
            </widget>
           </item>
@@ -266,8 +279,46 @@
    </widget>
    <widget class="QWidget" name="tab_modeling">
     <attribute name="title">
-     <string>Page</string>
+     <string>Rig Tools</string>
     </attribute>
+    <widget class="QWidget" name="gridLayoutWidget_3">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>431</width>
+       <height>321</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="btn_delete_controls_2">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Delete Control Rig</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="btn_make_switch">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Make IKFK Switch</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
  </widget>

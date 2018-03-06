@@ -7,6 +7,10 @@ import os
 import logging
 import pymel.core as pymel
 
+# HS
+from Projects.HacknSlash.python.project import HS_Clean
+from Projects.HacknSlash.python.project import HS_IK
+
 # Libs
 from Projects.HacknSlash.python.interop.utils import attr_utils
 from Projects.HacknSlash.python.project.libs import build_ctrls
@@ -50,11 +54,23 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_build_ikfk_clicked(self):
-        joint_utils.build_ik_fk_joints(joints=pymel.selected())
+        with pymel.UndoChunk():
+            joint_utils.build_ik_fk_joints(joints=pymel.selected())
 
     @QtCore.Slot()
     def on_btn_offset_transforms_clicked(self):
-        joint_utils.create_offset_groups(objects=pymel.selected())
+        with pymel.UndoChunk():
+            joint_utils.create_offset_groups(objects=pymel.selected())
+
+    @QtCore.Slot()
+    def on_btn_delete_controls_clicked(self):
+        HS_Clean.cleanup()
+
+    @QtCore.Slot()
+    def on_btn_make_switch_clicked(self):
+        with pymel.UndoChunk():
+            HS_IK.make_switch_utility(pymel.selected()[0])
+
 
 
 def showUI():
