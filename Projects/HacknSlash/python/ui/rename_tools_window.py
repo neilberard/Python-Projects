@@ -1,6 +1,7 @@
 # Imports
 # from PySide2 import QtCore, QtWidgets, QtGui
-from Interop.pyside.core.qt import QtCore, QtWidgets, QtGui, loadUiType
+from PySide2 import QtCore, QtWidgets, QtGui
+from python.qt.Qt import loadUiType
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 import os
@@ -112,7 +113,7 @@ showUI()
 
 
 """
-Test code.
+test code.
 """
 # app = QtWidgets.QApplication([])
 # win = RenameToolsWindow()

@@ -1,15 +1,18 @@
 # Imports
-from Interop.pyside.core.qt import QtCore, QtWidgets, QtGui, loadUiType
+from PySide2 import QtCore, QtWidgets
+from python.qt.Qt import loadUiType
+from python.qt.Qt import QtCore, QtWidgets
+
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 import maya.OpenMaya as OpenMaya
 import os
 import logging
 import pymel.core as pymel
-from Projects.HacknSlash.python.project.libs import build_ctrls
-from Projects.HacknSlash.python.project.libs import shapes
+from python.libs import build_ctrls, shapes
 
 reload(build_ctrls)
+reload(shapes)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -145,7 +148,7 @@ def showUI():
 
 
 """
-Test code.
+test code.
 """
 
 # from Projects.HacknSlash.python.ui import ct

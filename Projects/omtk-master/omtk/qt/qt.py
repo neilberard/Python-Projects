@@ -1484,7 +1484,7 @@ if __name__ == "__main__":
 #
 # In PySide(2), loadUi does not exist, so we implement it
 #
-# `_UiLoader` is adapted from the qtpy modules, which was further influenced
+# `_UiLoader` is adapted from the qtpy project, which was further influenced
 # by qt-helpers which was released under a 3-clause BSD license which in turn
 # is based on a solution at:
 #
@@ -1508,7 +1508,7 @@ if __name__ == "__main__":
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the
 #    distribution.
-#  * Neither the name of the Glue modules nor the names of its contributors
+#  * Neither the name of the Glue project nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #

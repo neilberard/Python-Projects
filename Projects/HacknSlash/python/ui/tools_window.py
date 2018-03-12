@@ -1,6 +1,7 @@
 # Imports
 # from PySide2 import QtCore, QtWidgets, QtGui
-from Interop.pyside.core.qt import QtCore, QtWidgets, QtGui, loadUiType
+from PySide2 import QtCore, QtWidgets
+from python.qt.Qt import loadUiType
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 import os
@@ -8,19 +9,19 @@ import logging
 import pymel.core as pymel
 
 # HS
-from Projects.HacknSlash.python.project import HS_Clean
-from Projects.HacknSlash.python.project import HS_IK
+from python.modules import HS_Clean
+from python.modules import HS_IK
 
 # Libs
-from Projects.HacknSlash.python.interop.utils import attr_utils
-from Projects.HacknSlash.python.project.libs import build_ctrls
-from Projects.HacknSlash.python.project.libs import joint_utils
-from Projects.HacknSlash.python.ui import ctrl_builder_window
+from python.interop.utils import attr_utils
+from python.libs import build_ctrls, joint_utils
+from python.ui import ctrl_builder_window
 
 reload(ctrl_builder_window)
 reload(attr_utils)
 reload(build_ctrls)
 reload(joint_utils)
+
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -84,7 +85,7 @@ def showUI():
     rename_tools_window.show()
 
 
-"""Test Code"""
+"""test Code"""
 # if __name__ == '__main__':
 #     app = QtWidgets.QApplication([])
 #     win = ToolsWindow()
