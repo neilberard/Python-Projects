@@ -14,6 +14,8 @@ class CreateCtrl():
 
         self._name = 'Placeholder'
         self._jnt = None
+        self._children = None
+        self._parent = None
         self._type = None
         self._object = None
         self._size = 1
