@@ -2,15 +2,15 @@
 Extracts Blendshape Targets from selected mesh.
 """
 import pymel.core as pymel
-from Interop.api_funcs import match_vertex_position
+from api_funcs import match_vertex_position
 
 
-def rebuild_targets():
-    sel = pymel.selected()
-    if len(sel) == 0:
+def rebuild_targets(obj):
+    """Simple rebuild targets using pymel builtin function"""
+    if len(obj) == 0:
         pymel.warning('Nothing in selection')
         return None
-    blend_shape_node = sel[0].listHistory(type='blendShape')
+    blend_shape_node = obj[0].listHistory(type='blendShape')
     if len(blend_shape_node) == 0:
         pymel.warning('Could not find Blendshape node on selected mesh')
         return None
@@ -21,18 +21,27 @@ def rebuild_targets():
         target = pymel.sculptTarget(blend_shape_node, e=True, r=True, t=alias[1].index())
         pymel.rename(target, target_name)
 
-def rebuild_targets_match(sel=pymel.selected()[0]):
-    if not sel:
+
+def rebuild_targets_match(obj):
+    """
+    Regenerate Blendshape targets with deformer masks applied. If you have masked out a portion of a blendshape
+    that mask will now be baked into the generated target.
+    :param obj: Node that has blendshapes applied.
+    :return: Regenerated targets.
+    """
+
+    # Disable skin an tweak nodes.
+    if not obj:
         print "Need to select object with blendshape"
         return
     try:
-        skin_node = sel.listHistory(type='skinCluster')[0]
+        skin_node = obj.listHistory(type='skinCluster')[0]
     except:
         skin_node = None
         pass
 
     try:
-        tweak_node = sel.listHistory(type='tweak')[0]
+        tweak_node = obj.listHistory(type='tweak')[0]
     except:
         tweak_node = None
         pass
@@ -43,12 +52,12 @@ def rebuild_targets_match(sel=pymel.selected()[0]):
     if tweak_node:
         tweak_node.envelope.set(0)
 
-    blend_shape_node = sel.listHistory(type='blendShape')[0]
-    print blend_shape_node
+    # Get blendshape
+    blend_shape_node = obj.listHistory(type='blendShape')[0]
     blend_aliases = blend_shape_node.listAliases()
     connection_dict = {}
 
-    # store connections
+    # Store connections, going to break them and reconnect later.
     for alias in blend_aliases:
 
         attribute = '{}.{}'.format(blend_shape_node, alias[0])
@@ -64,18 +73,26 @@ def rebuild_targets_match(sel=pymel.selected()[0]):
         target = pymel.sculptTarget(blend_shape_node, e=True, r=True, t=alias[1].index())
         pymel.rename(target, target_name)
 
+        # Set blendshape value to 1
         attribute = '{}.{}'.format(blend_shape_node, alias[0])
         pymel.setAttr(attribute, 1)
 
+        # todo: forget why this is re finding the pynode and not just using target.
         pynode_target = pymel.PyNode(target_name)
 
-        pos = match_vertex_position.get_vtx_pos(sel)
+        print target
+        print pynode_target
+
+        # Baking vertex position from masking
+        pos = match_vertex_position.get_vtx_pos(obj)
         match_vertex_position.set_vtx_pos(pynode_target, pos)
 
+        # Set blendshape value to 0
         pymel.setAttr(attribute, 0)
         if attribute in connection_dict.keys():
             pymel.connectAttr(connection_dict[attribute], attribute)
 
+    # Re-enable skin and tweak nodes
     if skin_node:
         skin_node.envelope.set(1)
 
@@ -84,6 +101,11 @@ def rebuild_targets_match(sel=pymel.selected()[0]):
 
 
 def get_connections(blendshape):
+    """
+    Create a dict of blendshape alias connections
+    :param blendshape: blendshape PyNode
+    :return: dict{attribute: connection}
+    """
     blend_aliases = blendshape.listAliases()
     connection_dict = {}
 
@@ -97,6 +119,11 @@ def get_connections(blendshape):
 
 
 def connect_attrs(connection_dict, blendshape):
+    """
+    Iterate through connection_dict and reconnect attrs.
+    :param connection_dict: dict{attribute: connection}
+    :param blendshape: blendshape PyNode
+    """
     blend_aliases = blendshape.listAliases()
 
     for alias in blend_aliases:
@@ -106,7 +133,12 @@ def connect_attrs(connection_dict, blendshape):
         if attribute in connection_dict.keys():
             pymel.connectAttr(connection_dict[attribute], attribute)
 
+
 def rebuild_targets_with_mask():
+    """
+    Rebuilds targets by duplicating the mesh.
+    :return:
+    """
     sel = pymel.selected()
     skin_node = sel[0].listHistory(type='skinCluster')
     tweak_node = sel[0].listHistory(type='tweak')
@@ -136,15 +168,12 @@ def rebuild_targets_with_mask():
         attribute = '{}.{}'.format(blend_shape_node, alias[0])
         pymel.setAttr(attribute, 1)
         dup = pymel.duplicate(sel[0], name=alias[0])
-        dup[0].translateX.unlock()
-        dup[0].translateY.unlock()
-        dup[0].translateZ.unlock()
-        dup[0].rotateX.unlock()
-        dup[0].rotateY.unlock()
-        dup[0].rotateZ.unlock()
-        dup[0].scaleX.unlock()
-        dup[0].scaleY.unlock()
-        dup[0].scaleZ.unlock()
+
+        for attr in dup.listAttributes():
+            try:
+                attr.unlock()
+            except:
+                pass
 
         pymel.parent(dup[0], world=True)
         pymel.setAttr(attribute, 0)
@@ -157,12 +186,11 @@ def rebuild_targets_with_mask():
     if tweak_node:
         tweak_node[0].envelope.set(1)
 
-rebuild_targets_with_mask()
 
+"""TEST CODE"""
 
-print 'test'
 if __name__ == '__main__':
-    base = pymel.PyNode('Face_Blnd')
+    base = pymel.PyNode('Head_Mesh')
+    rebuild_targets_match(base)
 
-    print get_connections(base)
 
