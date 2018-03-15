@@ -1,43 +1,49 @@
 import pymel.core as pymel
 from python.libs import shapes
+from python.libs import lib_network
 import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-class CreateCtrl():
+class CreateCtrl(object):
     """
     Create a controller that can be manipulated by class properties.
     """
-    def __init__(self):
+    def __init__(self, jnt=None, network=None):
 
-        self._name = 'Placeholder'
-        self._jnt = None
-        self._children = None
-        self._parent = None
-        self._type = None
+        # Ctrl Object
         self._object = None
-        self._size = 1
-        self._matrix = None
-        self._axis = 'x'
+        self._network = network
 
-        try:
-            self._matrix = self._jnt.getMatrix()
-        except:
-            pass
+        if jnt:
+            self._name = 'Placeholder'
+            self._ctrl_type = None
+            self._jnt = jnt
+            self._children = jnt.getChildren()
+            self._parent = jnt.getParent()
+            self._matrix = jnt.getMatrix(worldSpace=True)
+            self._shape = None
+            self._size = 1
+            self._axis = 'z'
 
     def make_object(self):
-        if not self._type:
+        if not self._shape:
             log.warning('no type specified')
 
-        self._object = shapes.make_shape(self._type, self._name, self._axis)
+        self._object = shapes.make_shape(self._shape, self._name, self._axis)
         if not self._object:
             log.warning('No object was returned')
             return None
 
         if self._matrix:
             self._object.setMatrix(self._matrix, worldSpace=True)
+
+    def get_network(self):
+        pass
+
+
 
     @property
     def object(self):
@@ -53,11 +59,11 @@ class CreateCtrl():
 
     @property
     def type(self):
-        return self._type
+        return self._shape
 
     @type.setter
     def type(self, value):
-        self._type = value
+        self._shape = value
 
     @property
     def size(self):
@@ -97,3 +103,25 @@ class CreateCtrl():
             self._object = None
         except:
             pass
+
+
+def build_ctrls(joints):
+    return [CreateCtrl(jnt()) for jnt in joints]
+
+
+"""USAGE EXAMPLE"""
+if __name__ == '__main__':
+    net = lib_network.create_network_node(name='temp',
+                                          tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
+                                          attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'OrientConstraint', 'PointConstraint'])
+    ctrls = [CreateCtrl(jnt=jnt, network=net) for jnt in pymel.selected()]
+
+    for ctrl in ctrls:
+        ctrl.type = "Circle"
+        ctrl.make_object()
+
+
+
+
+
+
