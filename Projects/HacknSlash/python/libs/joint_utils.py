@@ -1,4 +1,5 @@
 import pymel.core as pymel
+import maya.OpenMaya as om
 from python.libs import naming_utils
 from python.libs import consts
 import logging
@@ -7,6 +8,55 @@ from python.libs import lib_network
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+
+def get_pole_position(joint_chain):
+    print joint_chain[0]
+    vA = om.MVector(joint_chain[0].getTranslation(space='world'))
+    vB = om.MVector(joint_chain[1].getTranslation(space='world'))
+    vC = om.MVector(joint_chain[2].getTranslation(space='world'))
+
+    mid = (vA + vC) / 2
+    midVector = om.MVector.normal(vB - mid)
+    pole = (midVector * 5) + vB
+    return (pole[0], pole[1], pole[2])
+
+
+def get_pole_position1(joint_chain):
+    """
+    Expects 3 joint chain, IE: ['Shoulder', 'Elbow', 'Wrist']
+    :param joint_chain: list
+    :return: pole position
+    """
+    vector_a = om.MVector(joint_chain[0].getTranslation(space='world'))
+    vector_b = om.MVector(joint_chain[1].getTranslation(space='world'))
+    vector_c = om.MVector(joint_chain[2].getTranslation(space='world'))
+
+    start_end = vector_c - vector_a
+    start_mid = vector_b - vector_a
+
+    dot = start_mid * start_end
+
+    proj = float(dot) / float(start_end.length())
+
+    start_end_normal = start_end.normal()
+
+    projV = start_end_normal * proj
+
+    arrowV = start_mid - projV
+    arrowV.normalize()
+    arrowV *= 5
+
+    finalV = arrowV + vector_b
+
+
+    # Add orientation
+    cross1 = start_end ^ start_mid
+    cross1.normalize()
+
+
+
+    return (finalV[0], finalV[1], finalV[2])
 
 
 def get_joint_chain(joint_list):
@@ -35,7 +85,7 @@ def get_joint_chain(joint_list):
             break
 
         if len(child.getChildren()) > 1:
-            print "Multiple chains detected."
+            print "Multiple chains detected.", child.getChildren()
             break
 
         if child.getChildren()[0] not in joint_list:
@@ -152,6 +202,10 @@ def build_ik_fk_joints(joints, network=None):
                                'Side': info.side,
                                'Utility': consts.ALL['IKFK']})
 
+    # pymel.ikHandle(startJoint=jnt_sets[1][0], endEffector=jnt_sets[1][-1])
+
+    return jnt_sets
+
 
 def create_offset_groups(objects):
     """
@@ -188,11 +242,17 @@ def create_offset_groups(objects):
 
 """Test Code"""
 if __name__ == '__main__':
-    net = lib_network.create_network_node(name='temp',
-                              tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
-                              attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'OrientConstraint', 'PointConstraint'])
 
-    build_ik_fk_joints(pymel.ls(type='joint'), net)
+    # pymel.spaceLocator(position=get_pole_position(pymel.ls(type='joint')))
+    pymel.spaceLocator(position=get_pole_position1(pymel.ls(type='joint')))
+
+
+
+    # net = lib_network.create_network_node(name='temp',
+    #                           tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
+    #                           attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'OrientConstraint', 'PointConstraint'])
+    #
+    # ik, fk = build_ik_fk_joints(pymel.ls(type='joint'), net)
 
 # USES
 # def get_networknode():
