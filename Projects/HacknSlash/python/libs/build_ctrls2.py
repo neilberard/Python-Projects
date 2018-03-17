@@ -4,6 +4,7 @@ from python.libs import lib_network
 from python.libs import naming_utils
 from python.libs import joint_utils
 reload(joint_utils)
+reload(shapes)
 import logging
 
 log = logging.getLogger(__name__)
@@ -35,11 +36,11 @@ class CreateCtrl(object):
         self.axis = axis
         self.shape = shape
         self.size = size
+        self.jnt = jnt
 
-        if jnt:
+        if self.jnt:
             self.name = name
             self.ctrl_type = None
-            self.jnt = jnt
             self.children = jnt.getChildren()
             self.parent = jnt.getParent()
             self.matrix = jnt.getMatrix(worldSpace=True)
@@ -49,6 +50,7 @@ class CreateCtrl(object):
         if not self.shape:
             log.warning('no type specified')
         # Object
+
         self.object = shapes.make_shape(self.shape, self.name, self.axis)
 
         if not self.object:
@@ -84,13 +86,13 @@ if __name__ == '__main__':
     # NET
     net = lib_network.create_network_node(name='temp',
                                           tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
-                                          attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'OrientConstraint', 'PointConstraint'])
+                                          attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'POLE', 'OrientConstraint', 'PointConstraint'])
 
     # IK FK
-    ik, fk = joint_utils.build_ik_fk_joints(pymel.ls(type='joint'), net)
+    fk, ik = joint_utils.build_ik_fk_joints(pymel.ls(type='joint'), net)
 
     # FK CTRLS
-    fk_ctrls = [CreateCtrl(jnt=jnt, network=net, tags={'Type': 'CTRL', 'Utility': 'IK'}, size=0.2) for jnt in fk]
+    fk_ctrls = [CreateCtrl(jnt=jnt, network=net, tags={'Type': 'CTRL', 'Utility': 'IK'}, size=0.2, shape='Circle') for jnt in fk]
 
     # Parent CTRLS
     for a in fk_ctrls:
@@ -114,6 +116,8 @@ if __name__ == '__main__':
         a.object.addAttr('JNT', type='message')
         a.jnt.message.connect(a.object.JNT)
 
+    # joint_utils.create_offset_groups([x.object for x in fk_ctrls])
+
     objects = [x.object for x in fk_ctrls]
 
     # Connect Message attr
@@ -123,9 +127,17 @@ if __name__ == '__main__':
     # IK CTRLS
     ikhandle = pymel.ikHandle(startJoint=ik[0], endEffector=ik[-1])[0]
     ikctrl = CreateCtrl(jnt=ikhandle, network=net, shape='Cube01', size=0.3)
+    ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ikhandle)
 
-    pymel.spaceLocator(joint_utils.get_pole_position(fk))
+    # POLE
+    pos, rot = joint_utils.get_pole_position1(fk)
+    loc = pymel.spaceLocator()
+    loc.setTranslation(pos, space='world')
+    loc.setRotation(rot)
+    loc.message.connect(net.POLE[0])
+    pymel.poleVectorConstraint(loc, ikhandle)
+
 
 
 

@@ -21,7 +21,7 @@ def transfer_uvs(meshes):
     source_uvs = source_dag.getUVs()
 
     # Find Orig Shape if exists in targets.
-    for mesh in meshes:
+    for mesh in meshes[1:]:
 
         target_mesh_function = None
 

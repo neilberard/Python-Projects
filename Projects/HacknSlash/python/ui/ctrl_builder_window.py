@@ -78,6 +78,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
         self.ctrl_builder.set_ctrl_matrices()
         self.ctrl_builder.set_ctrl_axis(self.axis)
+        self.ctrl_builder.get_ctrl_network_connection()
 
         self.remove_callbacks()
         self.ctrl_builder.create_ctrls()

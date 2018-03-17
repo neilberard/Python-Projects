@@ -2,6 +2,7 @@ import pymel.core as pymel
 import maya.OpenMaya as om
 from python.libs import naming_utils
 from python.libs import consts
+import math
 import logging
 
 from python.libs import lib_network
@@ -54,9 +55,21 @@ def get_pole_position1(joint_chain):
     cross1 = start_end ^ start_mid
     cross1.normalize()
 
+    cross2 = cross1 ^ arrowV
+    cross2.normalize()
+    arrowV.normalize()
 
+    matrixV = [arrowV.x, arrowV.y, arrowV.z, 0,
+               cross1.x, cross1.y, cross1.z, 0,
+               cross2.x, cross2.y, cross2.z, 0,
+               0, 0, 0, 1]
+    matrixM = om.MMatrix()
+    om.MScriptUtil.createMatrixFromList(matrixV, matrixM)
+    matrixFn = om.MTransformationMatrix(matrixM)
 
-    return (finalV[0], finalV[1], finalV[2])
+    rot = matrixFn.eulerRotation()
+
+    return (finalV.x, finalV.y, finalV.z), (math.degrees(rot[0]), math.degrees(rot[1]), math.degrees(rot[2]))
 
 
 def get_joint_chain(joint_list):
@@ -244,7 +257,11 @@ def create_offset_groups(objects):
 if __name__ == '__main__':
 
     # pymel.spaceLocator(position=get_pole_position(pymel.ls(type='joint')))
-    pymel.spaceLocator(position=get_pole_position1(pymel.ls(type='joint')))
+    position, rotation = get_pole_position1(pymel.ls(type='joint'))
+    loc = pymel.spaceLocator()
+    loc.setTranslation(position, space='world')
+    loc.setRotation(rotation)
+
 
 
 

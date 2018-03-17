@@ -5,10 +5,12 @@ from python.libs import consts
 from python.libs import naming_utils
 from python.libs import shapes
 from python.libs import joint_utils
+from python.libs import lib_network
 reload(shapes)
 reload(naming_utils)
 reload(consts)
 reload(joint_utils)
+reload(lib_network)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -177,6 +179,10 @@ class ControlBuilder(object):
 
             self._joint_info[index]['distance_sum'] = sum(distance_tally)/len(distance_tally)
 
+    def get_ctrl_network_connection(self):
+        for index in self._joint_info:
+            network = lib_network.get_network_node(self._joint_info[index]['jnt'], node_type='IKFK')
+
     def set_ctrl_sizes(self, size=10):
 
         for ctrl_instance in self._ctrls:
@@ -244,12 +250,15 @@ class ControlBuilder(object):
 
                 # find the children controllers and parent them to the control.
                 for child in self._joint_info[ctrl_instance]['jnt_children']:
-                    info = naming_utils.ItemInfo(child)
-                    ctrl_child = naming_utils.concatenate([info.side,
-                                                           info.base_name,
-                                                           info.joint_name,
-                                                           info.index,
-                                                           consts.ALL['CTRL']])
+                    try:
+                        info = naming_utils.ItemInfo(child)
+                        ctrl_child = naming_utils.concatenate([info.side,
+                                                               info.base_name,
+                                                               info.joint_name,
+                                                               info.index,
+                                                               consts.ALL['CTRL']])
+                    except:
+                        pass  # todo: Add support for non joint objects
 
                     try:
                         # todo: write a parent setter in the base class.
@@ -262,15 +271,18 @@ class ControlBuilder(object):
                 log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
 
         # Add Tags
-        for ctrl_instance in self._ctrls:
-            naming_utils.add_tags(self._ctrls[ctrl_instance].object,
-                                  {'Region': info.region,
-                                   'Name': info.base_name,
-                                   'Joint': info.joint_name,
-                                   'Index': info.index,
-                                   'Side': info.side,
-                                   'Type': consts.ALL['CTRL'],
-                                   'Utility': consts.ALL['FK']})
+        try:
+            for ctrl_instance in self._ctrls:
+                naming_utils.add_tags(self._ctrls[ctrl_instance].object,
+                                      {'Region': info.region,
+                                       'Name': info.base_name,
+                                       'Joint': info.joint_name,
+                                       'Index': info.index,
+                                       'Side': info.side,
+                                       'Type': consts.ALL['CTRL'],
+                                       'Utility': consts.ALL['FK']})
+        except:
+            pass
 
         # Add offsets
         for ctrl_instance in self._ctrls:
