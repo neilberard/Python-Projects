@@ -20,84 +20,87 @@ class CreateCtrl(object):
     """
     Create a controller that can be manipulated by class properties.
     """
-    def __init__(self):
+    def __init__(self,
+                 jnt=None,
+                 network=None,
+                 tags=None,
+                 axis='z',
+                 shape='Circle',
+                 size=1.0,
+                 name='ctrl'):
+        """
+        :param jnt:
+        :param network:
+        :param tags:
+        """
 
-        self._name = 'Placeholder'
-        self._type = None
-        self._object = None
-        self._size = 1
-        self._matrix = None
-        self._axis = 'x'
+        # Ctrl Object
+        self.object = None
+        self.network = network
+        self.tags = tags
+        self.axis = axis
+        self.shape = shape
+        self.size = size
+        self.jnt = jnt
+
+        if self.jnt:
+            self.name = name
+            self.ctrl_type = None
+            self.children = jnt.getChildren()
+            self.parent = jnt.getParent()
+            self.matrix = jnt.getMatrix(worldSpace=True)
+            self.make_object()
 
     def make_object(self):
-        # todo: Add a feature for importing shapes
-        if not self._type:
+        if not self.shape:
             log.warning('no type specified')
+        # Object
 
-        self._object = shapes.make_shape(self._type, self._name, self._axis)
-        if not self._object:
-            log.warning('No object was returned')
+        self.object = shapes.make_shape(self.shape, self.name, self.axis)
+
+        if not self.object:
+            log.warning('Make Object: No object was returned')
+            return None
+        # Matrix
+        if self.matrix:
+            self.object.setMatrix(self.matrix, worldSpace=True)
+        # Tags
+        if self.tags:
+            naming_utils.add_tags(self.object, self.tags)
+
+        self.object.scale.set(self.size, self.size, self.size)
+        self.freeze_transforms()
+
+        return self.object
+
+    def get_ctrl_distance(self):
+        """Retun average distance"""
+
+        jnt_vector = om.MVector(self.jnt.getTranslation(space='world'))
+        distance_tally = []
+
+        if self.parent:
+            parent_vector = om.MVector(self.parent.getTranslation(space='world')) - jnt_vector
+            distance_tally.append(parent_vector.length())
+
+        if self.children:
+            child_vector = om.MVector(self.children[0].getTranslation(space='world')) - jnt_vector
+            distance_tally.append(child_vector.length())
+
+        if len(distance_tally) > 0:
+            return sum(distance_tally)/len(distance_tally)
+
+        else:
             return None
 
-        if self._matrix:
-            self._object.setMatrix(self._matrix, worldSpace=True)
-
-    @property
-    def object(self):
-        return self._object
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        self._name = name
-
-    @property
-    def type(self):
-        return self._type
-
-    @type.setter
-    def type(self, value):
-        self._type = value
-
-    @property
-    def size(self):
-        return self._size
-
-    @size.setter
-    def size(self, value):
-        self._size = value
-        try:
-            self._object.setScale([value, value, value])
-        except:
-            pass
-
-    @property
-    def matrix(self):
-        return self._matrix
-
-    @matrix.setter
-    def matrix(self, matrix):
-        self._matrix = matrix
-
-    @property
-    def axis(self):
-        return self._axis
-
-    @axis.setter
-    def axis(self, axis):
-        self._axis = axis
-
     def freeze_transforms(self):
-        pymel.makeIdentity(self._object, apply=True, scale=True)
-        pymel.delete(self._object, constructionHistory=True)
+        pymel.makeIdentity(self.object, apply=True, scale=True)
+        pymel.delete(self.object, constructionHistory=True)
 
     def delete(self):
         try:
-            pymel.delete(self._object)
-            self._object = None
+            pymel.delete(self.object)
+            self.object = None
         except:
             pass
 
@@ -107,113 +110,46 @@ class ControlBuilder(object):
     This class is intended to iterate on a dict of CreateCtrl class instances and values.
     """
 
-    def __init__(self, joints=None):
+    def __init__(self, joints=None, network=None, ctrl_type=None):
+        self.joints = joints
+        self.network = network
+        self.ctrl_type = ctrl_type
         self.parent_constraint = True
-        self._joints = joints
-        self._ctrls = {}
-        self._joint_info = {}
+        self.ctrls = {}
 
-    @property
-    def joints(self):
-        return self.joints()
-
-    @joints.setter
-    def joints(self, joints):
-        self._joints = joints
-        self.set_ctrl_dict()
-        self.set_joint_dict()
-
-    def set_ctrl_dict(self):
-        self._ctrls = {}
+    def set_ctrl_list(self):
+        self.ctrls = {}
 
         # If nothing is selected, will return a single instance.
-        if not self._joints:
-            self._ctrls['base'] = CreateCtrl()
+        if not self.joints:
+            self.ctrls['base'] = CreateCtrl()
         else:
-            for jnt in self._joints:
-                self._ctrls[jnt.name()] = CreateCtrl()
-
-    def set_joint_dict(self):
-        """
-        :return: skeleton_info{jnt_info:{'jnt_matrix': list, 'jnt_children': list,'jnt_parent': parent}}
-        """
-        self._joint_info = {}
-
-        for jnt in self._joints:
-            jnt_info = {'jnt': jnt,
-                        'jnt_matrix': jnt.getMatrix(worldSpace=True),
-                        'jnt_children': jnt.getChildren(),
-                        'jnt_parent': jnt.getParent()}
-            self._joint_info[jnt.name()] = jnt_info
-
-    def create_ctrls(self):
-        for ctrl_instance in self._ctrls.values():
-            ctrl_instance.make_object()
-
-    def get_ctrl_distance(self):
-        """Retun average distance"""
-
-        distance_tally = []
-
-        for index in self._joint_info:
-
-            jnt_vector = om.MVector(self._joint_info[index]['jnt'].getTranslation(space='world'))
-
-            if self._joint_info[index]['jnt_parent']:
-                jnt_parent_vector = om.MVector(self._joint_info[index]['jnt_parent'].getTranslation(space='world'))
-
-                distanceA = om.MVector(jnt_parent_vector - jnt_vector)
-
-                log.info(distanceA.length())
-                distance_tally.append(distanceA.length())
-                self._joint_info[index]['distance_sum'] = distanceA.length()
-
-            for child in self._joint_info[index]['jnt_children']:
-                child_vector = om.MVector(child.getTranslation(space='world'))
-                distanceB = om.MVector(jnt_vector - child_vector)
-                distance_tally.append(distanceB.length())
-
-            if len(distance_tally) == 0:
-                log.info('Could not gather distance')
-                return
-
-            self._joint_info[index]['distance_sum'] = sum(distance_tally)/len(distance_tally)
-
-    def get_ctrl_network_connection(self):
-        for index in self._joint_info:
-            network = lib_network.get_network_node(self._joint_info[index]['jnt'], node_type='IKFK')
+            for jnt in self.joints:
+                self.ctrls[jnt.name()] = CreateCtrl()
 
     def set_ctrl_sizes(self, size=10):
+        for x in self.ctrls.values():
+            print x.get_ctrl_distance()
 
-        for ctrl_instance in self._ctrls:
-            try:
-                self._ctrls[ctrl_instance].size = self._joint_info[ctrl_instance]['distance_sum'] * (size/100.00)
-            except:
-                self._ctrls[ctrl_instance].size = (size/10.00)
+        # for ctrl_instance in self.ctrls:
+        #     try:
+        #         self.ctrls[ctrl_instance].size = self._joint_info[ctrl_instance]['distance_sum'] * (size / 100.00)
+        #     except:
+        #         self.ctrls[ctrl_instance].size = (size / 10.00)
 
     def set_ctrl_axis(self, axis):
-        for ctrl_instance in self._ctrls:
-            self._ctrls[ctrl_instance].axis = axis
-
-    def set_ctrl_types(self, ctrl_type):
-        for ctrl_instance in self._ctrls:
-            self._ctrls[ctrl_instance].type = ctrl_type
-
-    def set_ctrl_matrices(self):
-        if not self._joints:
-            return
-        for ctrl_instance in self._ctrls:
-            self._ctrls[ctrl_instance].matrix = self._joint_info[ctrl_instance]['jnt_matrix']
+        for ctrl_instance in self.ctrls:
+            self.ctrls[ctrl_instance].axis = axis
 
     def set_ctrl_names(self):
-        for ctrl_instance in self._ctrls:
+        for ctrl_instance in self.ctrls:
             info = naming_utils.ItemInfo(ctrl_instance)  # Grabbing the object base and or jnt name.
             log.info(info.base_name)
-            self._ctrls[ctrl_instance].name = naming_utils.concatenate([info.side,
-                                                                        info.base_name,
-                                                                        info.joint_name,
-                                                                        info.index,
-                                                                        consts.ALL['CTRL']])
+            self.ctrls[ctrl_instance].name = naming_utils.concatenate([info.side,
+                                                                       info.base_name,
+                                                                       info.joint_name,
+                                                                       info.index,
+                                                                       consts.ALL['CTRL']])
 
     def publish_ctls(self):
         """
@@ -222,12 +158,12 @@ class ControlBuilder(object):
         """
 
         # Parent controllers
-        for ctrl_instance in self._ctrls:
-            self._ctrls[ctrl_instance].freeze_transforms()
+        for ctrl_instance in self.ctrls:
+            self.ctrls[ctrl_instance].freeze_transforms()
             if self._joint_info:  # If no joints are listed, skip.
                 # Find the parent controller by name and parent the control to it.
                 if self.parent_constraint:
-                    pymel.parentConstraint(self._ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
+                    pymel.parentConstraint(self.ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
 
                 if self._joint_info[ctrl_instance]['jnt_parent']:
 
@@ -242,7 +178,7 @@ class ControlBuilder(object):
 
 
                         # todo: write a parent setter in the base class.
-                        pymel.parent(self._ctrls[ctrl_instance].object, ctrl_parent)
+                        pymel.parent(self.ctrls[ctrl_instance].object, ctrl_parent)
 
                     except Exception as ex:
                         # log.error(ex)
@@ -262,7 +198,7 @@ class ControlBuilder(object):
 
                     try:
                         # todo: write a parent setter in the base class.
-                        pymel.parent(ctrl_child, self._ctrls[ctrl_instance].object)
+                        pymel.parent(ctrl_child, self.ctrls[ctrl_instance].object)
 
                     except Exception as ex:
                         # log.error(ex)
@@ -272,8 +208,8 @@ class ControlBuilder(object):
 
         # Add Tags
         try:
-            for ctrl_instance in self._ctrls:
-                naming_utils.add_tags(self._ctrls[ctrl_instance].object,
+            for ctrl_instance in self.ctrls:
+                naming_utils.add_tags(self.ctrls[ctrl_instance].object,
                                       {'Region': info.region,
                                        'Name': info.base_name,
                                        'Joint': info.joint_name,
@@ -285,111 +221,31 @@ class ControlBuilder(object):
             pass
 
         # Add offsets
-        for ctrl_instance in self._ctrls:
-            joint_utils.create_offset_groups(self._ctrls[ctrl_instance].object)
+        for ctrl_instance in self.ctrls:
+            joint_utils.create_offset_groups(self.ctrls[ctrl_instance].object)
 
         # Removing controls
-        for ctrl_instance in self._ctrls:
-            self._ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
+        for ctrl_instance in self.ctrls:
+            self.ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
 
     def delete_ctrls(self):
-        if not self._ctrls:
+        if not self.ctrls:
             return
 
-        for ctrl_instance in self._ctrls.values():
+        for ctrl_instance in self.ctrls.values():
             if ctrl_instance:
                 ctrl_instance.delete()  # deleting the shape
             del ctrl_instance  # deleting the class instance
 
-        self._ctrls = {}  # resetting the dict
-
-
-
-
-
-
-
-
-# def build_fk_ctrls(joints, ctrl_type='circle', ctrl_name='Fk', ctrl_size=1):
-#     """
-#
-#     :param joints:
-#     :param ctrl_type:
-#     :param ctrl_name:
-#     :param ctrl_size:
-#     :return:
-#     """
-#     fk_ctrls = []
-#     hierarchy = {}
-#
-#     for jnt in joints:
-#         ctrl_name = jnt.name() + '_FK'  # todo: add a naming function.
-#         # Getting joint info.
-#         jnt_matrix = jnt.getMatrix(worldSpace=True)
-#         jnt_children = jnt.getChildren()
-#         jnt_parent = jnt.getParent()
-#
-#         # Making controller.
-#         ctrl = create_ctrl(ctrl_type, ctrl_size, ctrl_name=ctrl_name)
-#         ctrl.setMatrix(jnt_matrix, worldSpace=True)
-#         pymel.parentConstraint([ctrl, jnt])
-#         fk_ctrls.append(ctrl)
-#
-#         # Rebuild hierarchy
-#
-#         if jnt_parent:
-#             parent_ctrl_name = ctrl_name.replace(jnt.name(), jnt_parent.name())  # Trying to find name of parent ctrl
-#             try:
-#                 parent_ctrl = pymel.PyNode(parent_ctrl_name)
-#                 ctrl.setParent(parent_ctrl)
-#             except pymel.MayaNodeError:
-#                 pass
-#
-#         if jnt_children:
-#             for jnt_child in jnt_children:
-#                 child_ctrl_name = ctrl_name.replace(jnt.name(), jnt_child.name())  # Trying to find name of child ctrl
-#                 try:
-#                     child_ctrl = pymel.PyNode(child_ctrl_name)
-#                     child_ctrl.setParent(ctrl)
-#                 except pymel.MayaNodeError:
-#                     pass
-#
-#         return fk_ctrls
-
+        self.ctrls = {}  # resetting the dict
 
 
 """TEST CODE"""
 
 if __name__ == '__main__':
 
-    vector = om.MVector(1, 0, 0)
-
-    ctrl_builder = ControlBuilder(pymel.selected())
-    ctrl_builder.set_ctrl_types('Circle')
-    ctrl_builder.get_ctrl_distance()
-
-
-    ctrl_builder.create_ctrls()
-    ctrl_builder.set_ctrl_sizes()
-
-
-
-
-
-
-    # jnt_dict = get_joint_hierarchy(joints=pymel.selected())
-    # ctrls = build_ctrls(joints=pymel.selected())
-    #
-    # for obj in ctrls:
-    #     print jnt_dict[obj]['jnt_matrix']
-    #
-    #     ctrls[obj].type = 'Diamond'
-    #     ctrls[obj].matrix = jnt_dict[obj]['jnt_matrix']
-    #     ctrls[obj].make_object()
-
-        # obj.type = 'Circle'
-        # obj.make_object()
-
+    ctrls = CreateCtrl(jnt=pymel.selected()[0])
+    print ctrls.get_ctrl_distance()
 
 
 

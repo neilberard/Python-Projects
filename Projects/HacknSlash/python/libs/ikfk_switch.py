@@ -6,15 +6,18 @@ def to_ik(net):
 
     # Set Constraint Weight
     for orient, point in zip(net.OrientConstraint.connections(), net.PointConstraint.connections()):
+
         orient.w0.set(0)
         orient.w1.set(1)
         point.w0.set(0)
         point.w1.set(1)
 
     # Match FK POS
-    fk_pos = net.FK.connections()[-1].getTranslation(space='world')
+    fk_pos = net.FK_CTRL.connections()[-1].getTranslation(space='world')
+    fk_rot = net.FK_CTRL.connections()[-1].getRotation(space='world')
     ik_ctrl = net.IK_CTRL.connections()[0]
     ik_ctrl.setTranslation(fk_pos, space='world')
+    ik_ctrl.setRotation(fk_rot, space='world')
 
     # Set Pole POS
     pole = net.POLE.connections()[0]

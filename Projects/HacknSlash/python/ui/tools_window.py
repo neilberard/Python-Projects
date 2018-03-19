@@ -9,7 +9,7 @@ import logging
 import pymel.core as pymel
 
 # HS
-from python.modules import HS_Clean
+from python.modules import hs_clean
 from python.modules import HS_IK
 
 # Libs
@@ -65,7 +65,7 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_delete_controls_clicked(self):
-        HS_Clean.cleanup()
+        hs_clean.cleanup()
 
     @QtCore.Slot()
     def on_btn_make_switch_clicked(self):

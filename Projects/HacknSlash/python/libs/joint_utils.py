@@ -202,7 +202,7 @@ def build_ik_fk_joints(joints, network=None):
         jnt_sets[1][idx].message.connect(network.IK[idx])  # IK
 
         point.message.connect(network.PointConstraint[idx])
-        point.message.connect(network.OrientConstraint[idx])
+        orient.message.connect(network.OrientConstraint[idx])
 
         # Tags Point
         naming_utils.add_tags(point,
