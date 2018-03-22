@@ -3,9 +3,11 @@ import pymel.core as pymel
 from python.libs import lib_network
 from python.libs import build_ctrls
 from python.libs import joint_utils
+from python.libs import naming_utils
 reload(lib_network)
 reload(build_ctrls)
 reload(joint_utils)
+reload(naming_utils)
 
 
 def build_ikfk_limb(jnts=None, net=None,):
@@ -14,12 +16,6 @@ def build_ikfk_limb(jnts=None, net=None,):
     :param jnts:
     :return:
     """
-
-    # NET
-    net = lib_network.create_network_node(name='temp',
-                                          tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
-                                          attributes=['IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'POLE', 'OrientConstraint',
-                                                      'PointConstraint'])
 
     # IK FK
     fk, ik = joint_utils.build_ik_fk_joints(jnts, net)
@@ -68,7 +64,6 @@ def build_ikfk_limb(jnts=None, net=None,):
     pymel.orientConstraint(ikctrl.object, ik[-1])
     joint_utils.create_offset_groups(ikctrl.object)
 
-
     # POLE
     pos, rot = joint_utils.get_pole_position1(fk)
     loc = pymel.spaceLocator()
@@ -77,6 +72,55 @@ def build_ikfk_limb(jnts=None, net=None,):
     loc.message.connect(net.POLE[0])
     pymel.poleVectorConstraint(loc, ikhandle)
 
+def build_limbs():
+
+    for jnt in pymel.ls(type='joint'):
+        if jnt.message.isConnected():
+            continue
+
+
+    # NET
+    net = lib_network.create_network_node(name='L_ARM',
+                                          tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
+                                          attributes=['JOINTS', 'IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'POLE', 'OrientConstraint',
+                                                      'PointConstraint'])
+
 """TEST CODE"""
 if __name__ == '__main__':
-    build_ikfk_limb(jnts=pymel.selected(), net=None)
+    print 'test'
+
+    jnt_dict = {}
+
+    for jnt in pymel.ls(type='joint'):
+
+        if jnt.message.isConnected():
+            continue
+
+        info = naming_utils.ItemInfo(jnt)
+
+        key = naming_utils.concatenate([info.side, info.region])
+
+        if jnt_dict.has_key(key):
+            jnt_dict[key].append(jnt)
+        elif info.region:
+            jnt_dict[key] = [jnt]
+
+    for key in jnt_dict.keys():
+        info = naming_utils.ItemInfo(key)
+        lib_network.create_network_node(name=key,
+                                        tags={'Type': 'IKFK',
+                                              'Region': info.region,
+                                              'Side': info.side},
+                                        attributes=['JOINTS',
+                                                    'IK',
+                                                    'FK',
+                                                    'IK_CTRL',
+                                                    'FK_CTRL',
+                                                    'POLE',
+                                                    'OrientConstraint',
+                                                    'PointConstraint'])
+
+
+
+
+

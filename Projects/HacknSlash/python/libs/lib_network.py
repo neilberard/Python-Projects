@@ -13,6 +13,13 @@ def get_message_connection(src_obj):
     print src_obj.message.listConnections(plugs=True)
 
 def create_network_node(name, tags, attributes):
+    """
+
+    :param name: str
+    :param tags: dict{'Region': 'Arm', 'Side': 'R', 'Type': 'IK'}
+    :param attributes: list['_IK', '_FK', _IKCTRL, _FKCTRL]
+    :return: network
+    """
     if pymel.objExists(name):
         network = pymel.PyNode(name)
     else:

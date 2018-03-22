@@ -3,16 +3,19 @@ ALL = {}
 
 
 #Base Names
+REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Side', 'Torso']
 
-TORSO = ['Pelvis', 'Spine', 'Chest', 'Clavicle']
+ARM = ['Shoulder', 'Elbow', 'Wrist']
 
-ARM = ['Shoulder', 'Elbow', 'Wrist', 'Pole']
+FOOT = ['Ball', 'Toe', 'Foot']
 
-LEG = ['Hip', 'Knee', 'Ankle', 'Ball', 'Toe', 'Foot']
+HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
 
-HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky', 'Hand']
+LEG = ['Hip', 'Knee', 'Ankle']
 
 SIDE = ['L', 'R']
+
+TORSO = ['Pelvis', 'Spine', 'Chest', 'Clavicle']
 
 # KEYS for item Tags.
 TAGS = ['Side', 'Region', 'Type', 'Utility']
@@ -70,6 +73,12 @@ ALL = {'Ankle': 'Ankle',
        }
 
 """test Code"""
+
+# NETWORK
+
+
+
+
 if __name__ == '__main__':
         import itertools
         items = list(set(itertools.chain(TORSO, ARM, LEG, HAND, SIDE, TYPE, IK)))
