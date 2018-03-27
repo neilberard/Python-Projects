@@ -1,6 +1,5 @@
 import pymel.core as pymel
-from python.libs import naming_utils
-from python.libs import consts
+from python.libs import consts, naming_utils
 import logging
 
 log = logging.getLogger(__name__)
@@ -71,6 +70,25 @@ def make_condition(name='placeholder', tags=None, firstTerm=0, secondTerm=1):
     vis_con.colorIfFalse.set([0, 0, 0])
 
     return vis_con
+
+def build_annotation(pole, ik_joint):
+    """
+    Draw a line from the pole vector ctrl to the ik joint for visual reference.
+    :param pole: pole vector controller
+    :param ik_joint: mid joint in the ik chain
+    :return: annotation, annotation parent
+    """
+
+    loc = pymel.spaceLocator(p=(0, 0, 0), a=True)
+    pymel.pointConstraint(ik_joint, loc, mo=False)
+
+    anno = pymel.annotate(loc, tx='', p=(0, 0, 0))
+    annoParent = anno.listRelatives(parent=True)[0]
+
+    pymel.pointConstraint(pole, annoParent, maintainOffset=False)
+    return anno, annoParent
+
+
 
 
 

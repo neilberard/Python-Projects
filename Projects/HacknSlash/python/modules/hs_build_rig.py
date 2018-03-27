@@ -1,9 +1,8 @@
 '''HSBuild_RIG'''
 import pymel.core as pymel
-from python.libs import lib_network
+from python.libs import lib_network, naming_utils
 from python.libs import build_ctrls
 from python.libs import joint_utils
-from python.libs import naming_utils
 from python.libs import general_utils
 reload(lib_network)
 reload(build_ctrls)
@@ -18,8 +17,6 @@ def build_ikfk_limb(jnts=None, net=None):
     :param jnts:
     :return:
     """
-    jnts = joint_utils.get_joint_chain(jnts)
-    print jnts
 
     # IK FK
     fk, ik = joint_utils.build_ik_fk_joints(jnts, net)
@@ -69,11 +66,16 @@ def build_ikfk_limb(jnts=None, net=None):
 
     # POLE
     pos, rot = joint_utils.get_pole_position(fk)
-    loc = pymel.spaceLocator()
-    loc.setTranslation(pos, space='world')
-    loc.setRotation(rot)
-    loc.message.connect(net.POLE[0])
-    pymel.poleVectorConstraint(loc, ikhandle)
+    pole = build_ctrls.CreateCtrl(jnt=ik[-1], network=net, shape='Cube01', size=1.0)
+    pole.object.setTranslation(pos, space='world')
+    pole.object.setRotation(rot)
+    pole.object.message.connect(net.POLE[0])
+    pymel.poleVectorConstraint(pole.object, ikhandle)
+
+    # Annoation. Line between pole and mid ik joint
+    anno, anno_parent = general_utils.build_annotation(pole.object, net.IK_JOINTS[1].connections()[0])
+    anno.message.connect(net.ANNO[0])
+    anno_parent.message.connect(net.ANNO[1])
 
     # Switch
     switch = build_ctrls.CreateCtrl(jnt=jnts[-1], network=net, tags={'Type': 'Switch', 'Utility': 'IKFK'}, shape='IKFK',
@@ -104,31 +106,11 @@ def build_ikfk_limb(jnts=None, net=None):
     ik_vis_condition = general_utils.make_condition(secondTerm=1.0)
     switch.object.IKFK.connect(ik_vis_condition.firstTerm)
 
-    for ik_ctrl, pole in zip(net.IK_CTRL.connections(), net.POLE.connections()):
+    for ik_ctrl, pole, anno in zip(net.IK_CTRL.connections(), net.POLE.connections(), net.ANNO.connections()):
         ik_vis_condition.outColorR.connect(ik_ctrl.visibility)
         ik_vis_condition.outColorR.connect(pole.visibility)
+        ik_vis_condition.outColorR.connect(anno.visibility)
 
-
-
-
-
-
-
-
-
-
-def build_limbs():
-
-    for jnt in pymel.ls(type='joint'):
-        if jnt.message.isConnected():
-            continue
-
-
-    # NET
-    net = lib_network.create_network_node(name='L_ARM',
-                                          tags={'Type': 'IKFK', 'Region': 'Arm', 'Side': 'Left'},
-                                          attributes=['JOINTS', 'IK', 'FK', 'IK_CTRL', 'FK_CTRL', 'POLE', 'OrientConstraint',
-                                                      'PointConstraint'])
 
 """TEST CODE"""
 if __name__ == '__main__':
@@ -141,20 +123,24 @@ if __name__ == '__main__':
     jnt_dict = {}
 
     for jnt in pymel.ls(type='joint'):
+        print jnt
 
-        if jnt.message.isConnected():
-            continue
+        # if jnt.message.isConnected():
+        #     continue
 
         info = naming_utils.ItemInfo(jnt)
 
+
         key = naming_utils.concatenate([info.side, info.region])
 
-        if jnt_dict.has_key(key):
+        if key in jnt_dict:
             jnt_dict[key].append(jnt)
         elif info.region:
             jnt_dict[key] = [jnt]
 
     # Create Network Nodes
+    print jnt_dict
+
     for key in jnt_dict.keys():
         info = naming_utils.ItemInfo(key)
         net = lib_network.create_network_node(name=key,
@@ -167,6 +153,7 @@ if __name__ == '__main__':
                                                           'IK_CTRL',
                                                           'FK_CTRL',
                                                           'POLE',
+                                                          'ANNO',
                                                           'IK_HANDLE',
                                                           'SWITCH',
                                                           'ORIENTCONSTRAINT',

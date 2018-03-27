@@ -10,6 +10,8 @@ from maya import OpenMaya
 from omtk.core import classModule
 from omtk.libs import libPython
 from omtk.libs import libSkeleton
+import core.qt.widgets.uiBaseWindow as uiBaseWindow
+
 
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -18,28 +20,13 @@ except:
 
 from omtk.qt.qt import loadUiType
 
-from omtk.ui import main_window
-
 log = logging.getLogger('omtk')
 
 ui_path = ui_file_name = os.path.dirname(__file__) + r'\main_window.ui'
 FormClass, BaseClass = loadUiType(ui_file_name)
 
 
-# class QTreeWidgetItem_CustomTooltip(QtGui.QTreeWidgetItem):
-#     """
-#     A custom QTreeWidgetItem that implement a tooltip for each individual item.
-#     """
-#     def __init__(self, *args, **kwargs):
-#         super(QTreeWidgetItem_CustomTooltip, self).__init__(*args, **kwargs)
-#         self.tooltip = None
-#
-#     def data(self, column, role):
-#         if role == QtCore.Qt.ToolTipRole:
-#             return self._tooltip
-#         return super(QTreeWidgetItem_CustomTooltip, self).data(column, role)
-
-class AutoRig(QtWidgets.QMainWindow):
+class AutoRig(uiBaseWindow, FormClass):
     def __init__(self, parent=None):
         # Try to kill latest Autorig ui window
         try:

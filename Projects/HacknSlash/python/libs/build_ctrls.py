@@ -1,8 +1,7 @@
 import logging
 import pymel.core as pymel
 import maya.OpenMaya as om
-from python.libs import consts
-from python.libs import naming_utils
+from python.libs import consts, naming_utils
 from python.libs import shapes
 from python.libs import joint_utils
 from python.libs import lib_network

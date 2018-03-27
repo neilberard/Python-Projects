@@ -1,6 +1,4 @@
 import pymel.core as pymel
-from pymel import core as pymel
-
 from python.libs import naming_utils
 
 

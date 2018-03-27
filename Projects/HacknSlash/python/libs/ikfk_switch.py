@@ -8,6 +8,15 @@ def to_ik(net):
 
     # Get Switch weight
     if switch.IKFK.get() == 1:
+        pole = net.POLE.connections()[0]
+
+        distance = joint_utils.get_distance(net.IK_JOINTS.connections()[0],
+                                            net.IK_JOINTS.connections()[1])
+
+        pos, rot = joint_utils.get_pole_position(net.IK_JOINTS.connections(), pole_dist=distance * 0.5)
+        pole.setTranslation(pos, space='world')
+        pole.setRotation(rot)
+
         return
 
     # Set Constraint Weight
@@ -24,7 +33,7 @@ def to_ik(net):
     print net.FK_JOINTS.connections()[0].getTranslation()
 
     distance = joint_utils.get_distance(net.FK_JOINTS.connections()[0],
-                                        net.FK_JOINTS.connections()[-1])
+                                        net.FK_JOINTS.connections()[1])
 
     pole = net.POLE.connections()[0]
     pos, rot = joint_utils.get_pole_position(net.FK_JOINTS.connections(), pole_dist=distance * 0.5)
