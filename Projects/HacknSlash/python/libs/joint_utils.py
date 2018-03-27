@@ -5,28 +5,28 @@ from python.libs import consts
 import math
 import logging
 
-from python.libs import lib_network
-
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def get_pole_position(joint_chain):
-    print joint_chain[0]
-    vA = om.MVector(joint_chain[0].getTranslation(space='world'))
-    vB = om.MVector(joint_chain[1].getTranslation(space='world'))
-    vC = om.MVector(joint_chain[2].getTranslation(space='world'))
+def get_distance(a, b):
+    """
+    :param a: Transform
+    :param b: Transform
+    :return: Distance
+    """
 
-    mid = (vA + vC) / 2
-    midVector = om.MVector.normal(vB - mid)
-    pole = (midVector * 5) + vB
-    return (pole[0], pole[1], pole[2])
+    vector_a = om.MVector(a.getTranslation(space='world'))
+    vector_b = om.MVector(b.getTranslation(space='world'))
+
+    return om.MVector(vector_a-vector_b).length()
 
 
-def get_pole_position1(joint_chain):
+def get_pole_position(joint_chain, pole_dist=20):
     """
     Expects 3 joint chain, IE: ['Shoulder', 'Elbow', 'Wrist']
     :param joint_chain: list
+    :param pole_dist
     :return: pole position
     """
     vector_a = om.MVector(joint_chain[0].getTranslation(space='world'))
@@ -46,10 +46,9 @@ def get_pole_position1(joint_chain):
 
     arrowV = start_mid - projV
     arrowV.normalize()
-    arrowV *= 5
+    arrowV *= pole_dist
 
     finalV = arrowV + vector_b
-
 
     # Add orientation
     cross1 = start_end ^ start_mid
@@ -120,7 +119,7 @@ def rebuild_joint_chain(joint_list, name):
     """
     new_joints = []
 
-    for jnt in get_joint_chain(joint_list):
+    for jnt in joint_list:
 
         info = naming_utils.ItemInfo(jnt)
         new_name = naming_utils.concatenate([info.side,
@@ -189,7 +188,7 @@ def build_ik_fk_joints(joints, network=None):
         jnt_sets.append(rebuild_joint_chain(joints, name=index))
 
     # Build constriants and Connect to network
-    for idx, jnt in enumerate(joints):
+    for idx, jnt in enumerate(get_joint_chain(joints)):
 
         info = naming_utils.ItemInfo(jnt)
 
@@ -198,11 +197,11 @@ def build_ik_fk_joints(joints, network=None):
         orient = pymel.orientConstraint([jnt_sets[0][idx], jnt_sets[1][idx], jnt])
 
         # Connect Message to Network
-        jnt_sets[0][idx].message.connect(network.FK[idx])  # FK
-        jnt_sets[1][idx].message.connect(network.IK[idx])  # IK
+        jnt_sets[0][idx].message.connect(network.FK_JOINTS[idx])  # FK
+        jnt_sets[1][idx].message.connect(network.IK_JOINTS[idx])  # IK
 
-        point.message.connect(network.PointConstraint[idx])
-        orient.message.connect(network.OrientConstraint[idx])
+        point.message.connect(network.POINTCONSTRAINT[idx])
+        orient.message.connect(network.ORIENTCONSTRAINT[idx])
 
         # Tags Point
         naming_utils.add_tags(point,
@@ -214,8 +213,6 @@ def build_ik_fk_joints(joints, network=None):
                               {'Region': info.region,
                                'Side': info.side,
                                'Utility': consts.ALL['IKFK']})
-
-    # pymel.ikHandle(startJoint=jnt_sets[1][0], endEffector=jnt_sets[1][-1])
 
     return jnt_sets
 
@@ -257,7 +254,7 @@ def create_offset_groups(objects):
 if __name__ == '__main__':
 
     # pymel.spaceLocator(position=get_pole_position(pymel.ls(type='joint')))
-    position, rotation = get_pole_position1(pymel.ls(type='joint'))
+    position, rotation = get_pole_position(pymel.ls(type='joint'))
     loc = pymel.spaceLocator()
     loc.setTranslation(position, space='world')
     loc.setRotation(rotation)

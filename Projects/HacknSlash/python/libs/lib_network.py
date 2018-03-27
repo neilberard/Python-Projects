@@ -9,8 +9,10 @@ def get_network_node(src_obj, node_type):
         if connection.hasAttr('Type') and connection.Type.get() == node_type:
             return connection
 
+
 def get_message_connection(src_obj):
     print src_obj.message.listConnections(plugs=True)
+
 
 def create_network_node(name, tags, attributes):
     """

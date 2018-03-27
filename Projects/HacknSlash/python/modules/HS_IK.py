@@ -11,7 +11,7 @@ log.setLevel(logging.DEBUG)
 
 # from interop.utils import HS_Funcs as funcs
 
-def make_switch_utility(switch):
+def make_switch_utility(switch, tags=None, network=None):
     """
     Create a 'plusMinusAverage' shading node to connect constraint weighting.
     Ensure switch has IKFK attribute.
@@ -35,13 +35,6 @@ def make_switch_utility(switch):
                                                     consts.ALL['IKFK'],
                                                     consts.ALL['Utility']])
 
-    # Add Tags to Switch
-    naming_utils.add_tags(switch,
-                          {'Side': switch_info.side,
-                           'Region': switch_info.region,
-                           'Type': consts.ALL['CTRL'],
-                           'Utility': consts.ALL['IKFK']})
-
     # CREATE/GET SWITCH UTILITY
     if not pymel.objExists(switch_utility_name):
         switch_utility = pymel.shadingNode('plusMinusAverage',
@@ -51,11 +44,7 @@ def make_switch_utility(switch):
         switch_utility = pymel.PyNode(switch_utility_name)
 
     # Add Tags to Switch Utility
-    naming_utils.add_tags(switch_utility,
-                          {'Side': switch_info.side,
-                           'Region': switch_info.region,
-                           'Type': consts.ALL['Utility'],
-                           'Utility': consts.ALL['IKFK']})
+    naming_utils.add_tags(switch_utility, tags)
 
     # Setattr
     switch_utility.operation.set(2)
@@ -152,7 +141,7 @@ def ik_switch_snap():
                     #cmds.makeIdentity(ctrl,a=True, t=1,r=1,s=1,n=0,pn=1)
 
 '''Build annotations for pole vectors, going to swap this with curves'''
-def build_anno(pole,ik,handle):    
+def build_anno(pole,ik,handle):
     
     ctrl = pymel.listRelatives(pole, c=True)
     loc = pymel.spaceLocator(p =(0, 0, 0), n=ik + bt['loc'], a=True)

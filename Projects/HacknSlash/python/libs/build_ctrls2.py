@@ -131,7 +131,7 @@ if __name__ == '__main__':
     pymel.pointConstraint(ikctrl.object, ikhandle)
 
     # POLE
-    pos, rot = joint_utils.get_pole_position1(fk)
+    pos, rot = joint_utils.get_pole_position(fk)
     loc = pymel.spaceLocator()
     loc.setTranslation(pos, space='world')
     loc.setRotation(rot)
