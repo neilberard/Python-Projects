@@ -19,15 +19,12 @@ def to_ik(net):
 
         return
 
-    # Set Constraint Weight
-    switch.IKFK.set(1)
 
     # Match FK POS
-    fk_pos = net.FK_JOINTS.connections()[-1].getTranslation(space='world')
-    fk_rot = net.FK_JOINTS.connections()[-1].getRotation(space='world')
+    fk_matrix = net.JOINTS.connections()[2].getMatrix(worldSpace=True)
+
     ik_ctrl = net.IK_CTRL.connections()[0]
-    ik_ctrl.setTranslation(fk_pos, space='world')
-    ik_ctrl.setRotation(fk_rot, space='world')
+    ik_ctrl.setMatrix(fk_matrix, worldSpace=True)
 
     # Set Pole POS
     print net.FK_JOINTS.connections()[0].getTranslation()
@@ -40,6 +37,9 @@ def to_ik(net):
     pole.setTranslation(pos, space='world')
     pole.setRotation(rot)
 
+    # Set Constraint Weight
+    switch.IKFK.set(1)
+
 
 def to_fk(net):
 
@@ -50,13 +50,12 @@ def to_fk(net):
     if switch.IKFK.get() == 0:
         return
 
+    jnt_matrices = [jnt.getMatrix(worldSpace=True) for jnt in net.JOINTS.connections()]
+
     switch.IKFK.set(0)
 
-    for ctrl, ik in zip(net.FK_CTRL.connections(), net.IK_JOINTS.connections()):
-        pos = ik.getTranslation(space='world')
-        rot = ik.getRotation(space='world')
-        ctrl.setTranslation(pos, space='world')
-        ctrl.setRotation(rot, space='world')
+    for ctrl, matrix in zip(net.FK_CTRL.connections(), jnt_matrices):
+        ctrl.setMatrix(matrix, worldSpace=True)
 
 
 def switch_to_ik():
