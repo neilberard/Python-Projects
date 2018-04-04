@@ -4,19 +4,30 @@ from python.libs import lib_network, naming_utils
 from python.libs import build_ctrls
 from python.libs import joint_utils
 from python.libs import general_utils
+import virtual_class_hs
 reload(lib_network)
 reload(build_ctrls)
 reload(joint_utils)
 reload(naming_utils)
 reload(general_utils)
+reload(virtual_class_hs)
 
 
 def build_ikfk_limb(jnts=None, net=None):
     """
-
     :param jnts:
     :return:
     """
+    jnts = joint_utils.get_joint_chain(jnts)
+    for jnt in jnts:
+        naming_utils.add_tags(jnt, {'_class': '_JointNode'})
+
+    if not net:
+        net = virtual_class_hs.LimbNode()
+
+    # Connect Joints to Net
+    for idx, jnt in enumerate(jnts):
+        jnt.message.connect(net.JOINTS[idx])
 
     # IK FK
     fk, ik = joint_utils.build_ik_fk_joints(jnts, net)

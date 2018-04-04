@@ -184,7 +184,7 @@ class WidgetLogger(QtWidgets.QWidget):
         self.ui.tableView_logs.setModel(table_proxy_model)
         # self.ui.tableView_logs.setModel(self._table_log_model)
 
-        self.ui.tableView_logs.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        # self.ui.tableView_logs.horizontalHeader().setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.ui.tableView_logs.horizontalHeader().setStretchLastSection(True)
 
         self.create_logger_handler()
@@ -205,7 +205,8 @@ class WidgetLogger(QtWidgets.QWidget):
 
             def emit(self_, record):
                 self._logging_records.append(record)
-                self.ui.tableView_logs.model().reset()
+                print "RESET"
+                # self.ui.tableView_logs.model().reset()
 
         handler = QtHandler()
 

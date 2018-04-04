@@ -72,8 +72,8 @@ def _reload(kill_ui=True):
     import pluginmanager_window
     reload(pluginmanager_window)
 
-    import main_window
-    reload(main_window)
+    import main_window_tools
+    reload(main_window_tools)
 
     if kill_ui:
         # Try to kill the window to prevent any close event error
@@ -89,6 +89,6 @@ def show():
     """
     Show a simple gui. Note that PySide or PyQt4 is needed.
     """
+    from omtk import main_window_tools
 
-    import main_window
-    main_window.show()
+    main_window_tools.show()

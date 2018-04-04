@@ -10,30 +10,51 @@ from maya import OpenMaya
 from omtk.core import classModule
 from omtk.libs import libPython
 from omtk.libs import libSkeleton
-import core.qt.widgets.uiBaseWindow as uiBaseWindow
+from shiboken2 import wrapInstance
+import maya.OpenMayaUI as omui
 
 
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
+
 except:
     from omtk.qt.qt import QtCore, QtGui, QtWidgets
 
 from omtk.qt.qt import loadUiType
 
-log = logging.getLogger('omtk')
+from omtk.ui import main_window
 
-ui_path = ui_file_name = os.path.dirname(__file__) + r'\main_window.ui'
-FormClass, BaseClass = loadUiType(ui_file_name)
+# log = logging.getLogger('omtk')
+#
+# ui_path = ui_file_name = os.path.dirname(__file__) + r'\main_window.ui'
+# FormClass, BaseClass = loadUiType(ui_file_name)
 
 
-class AutoRig(uiBaseWindow, FormClass):
+
+# class QTreeWidgetItem_CustomTooltip(QtGui.QTreeWidgetItem):
+#     """
+#     A custom QTreeWidgetItem that implement a tooltip for each individual item.
+#     """
+#     def __init__(self, *args, **kwargs):
+#         super(QTreeWidgetItem_CustomTooltip, self).__init__(*args, **kwargs)
+#         self.tooltip = None
+#
+#     def data(self, column, role):
+#         if role == QtCore.Qt.ToolTipRole:
+#             return self._tooltip
+#         return super(QTreeWidgetItem_CustomTooltip, self).data(column, role)
+
+class AutoRig(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         # Try to kill latest Autorig ui window
         try:
             pymel.deleteUI('OpenRiggingToolkit')
         except:
             pass
-        if parent is None: parent = getMayaWindow()
+
+        maya_main = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
+
+        if parent is None: parent = maya_main
         super(AutoRig, self).__init__(parent)
         self.ui = main_window.Ui_OpenRiggingToolkit()
         self.ui.setupUi(self)
@@ -439,5 +460,5 @@ def show():
     # ptCenter = QtGui.QApplication.desktop().screenGeometry(pScreen).center()
     # pFrame.moveCenter(ptCenter)
     # gui.move(pFrame.topLeft())
-
-    gui.show()
+    #
+    # gui.show()

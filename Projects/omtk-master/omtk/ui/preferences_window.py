@@ -41,6 +41,6 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "OMTK - Preferences", None, QtWidgets.QApplication.UnicodeUTF8))
-        self.label.setText(QtWidgets.QApplication.translate("Dialog", "Default Rig Class", None, QtWidgets.QApplication.UnicodeUTF8))
+        Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "OMTK - Preferences", None))
+        self.label.setText(QtWidgets.QApplication.translate("Dialog", "Default Rig Class", None,))
 

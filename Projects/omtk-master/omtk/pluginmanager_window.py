@@ -60,7 +60,7 @@ class PluginListModel(QtCore.QAbstractTableModel):
             return self.header[col]
         return None
 
-class PluginListFilterProxyModel(QtGui.QSortFilterProxyModel):
+class PluginListFilterProxyModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent):
         super(PluginListFilterProxyModel, self).__init__(parent)
@@ -79,7 +79,7 @@ class PluginListFilterProxyModel(QtGui.QSortFilterProxyModel):
         item = model.items[row]
         return self._search_query in item.module_name
 
-class PluginManagerWindow(QtGui.QMainWindow):
+class PluginManagerWindow(QtWidgets.QMainWindow):
     searchQueryChanged = QtCore.Signal(str)
 
     def __init__(self, parent=None):
