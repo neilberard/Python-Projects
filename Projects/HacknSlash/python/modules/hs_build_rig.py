@@ -58,7 +58,7 @@ def build_ikfk_limb(jnts=None,
         pass
 
     # IK FK
-    print jnts, net
+
     fk, ik = joint_utils.build_ik_fk_joints(jnts, net)
 
     #Add Class Attr
@@ -72,8 +72,7 @@ def build_ikfk_limb(jnts=None,
             pass
 
     # FK CTRLS
-    fk_ctrls = [build_ctrls.CreateCtrl(jnt=jnt, network=net, tags={'Type': 'CTRL', 'Utility': 'IK'}, size=fk_size, shape=fk_shape) for jnt
-                in fk]
+    fk_ctrls = [build_ctrls.CreateCtrl(jnt=jnt, network=net, tags={'Region': net.Region, 'Side': net.Side, 'Type': 'CTRL', 'Utility': 'FK'}, size=fk_size, shape=fk_shape) for jnt in fk]
 
     # Parent CTRLS
     for a in fk_ctrls:
@@ -106,7 +105,7 @@ def build_ikfk_limb(jnts=None,
 
     # IK CTRLS
     ikhandle = pymel.ikHandle(startJoint=ik[0], endEffector=ik[-1])[0]
-    ikctrl = build_ctrls.CreateCtrl(jnt=ik[-1], network=net, shape=ik_shape, size=ik_size)
+    ikctrl = build_ctrls.CreateCtrl(jnt=ik[-1], network=net, shape=ik_shape, size=ik_size, tags= {'Region': net.Region, 'Side': net.Side, 'Type': 'CTRL', 'Utility': 'IK'})
     ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ikhandle)
     pymel.orientConstraint(ikctrl.object, ik[-1])
@@ -114,25 +113,27 @@ def build_ikfk_limb(jnts=None,
 
     # POLE
     pos, rot = joint_utils.get_pole_position(fk)
-    pole = build_ctrls.CreateCtrl(jnt=ik[-1], network=net, shape=pole_shape, size=pole_size)
+    pole = build_ctrls.CreateCtrl(jnt=ik[-1], network=net, shape=pole_shape, size=pole_size, tags={'Region': net.Region, 'Side': net.Side, 'Type': 'CTRL', 'Utility': 'IK'})
     pole.object.setTranslation(pos, space='world')
     pole.object.setRotation(rot)
     pole.object.message.connect(net.POLE[0])
     pymel.poleVectorConstraint(pole.object, ikhandle)
 
     # Annoation. Line between pole and mid ik joint
-    anno, anno_parent = general_utils.build_annotation(pole.object, net.IK_JOINTS[1].connections()[0])
-    anno.message.connect(net.ANNO[0])
+    annotation, anno_parent, locator, point_constraint = general_utils.build_annotation(pole.object, net.IK_JOINTS[1].connections()[0])
+    for obj in [annotation, anno_parent, locator, point_constraint]:
+        naming_utils.add_tags(obj, tags={'Region': net.Region, 'Side': net.Side})
+    annotation.message.connect(net.ANNO[0])
     anno_parent.message.connect(net.ANNO[1])
 
     # Switch
-    switch = build_ctrls.CreateCtrl(jnt=jnts[-1], network=net, tags={'Type': 'Switch', 'Utility': 'IKFK'}, shape=ikfk_shape,
+    switch = build_ctrls.CreateCtrl(jnt=jnts[-1], network=net, tags={'Region': net.Region, 'Side': net.Side, 'Type': 'Switch', 'Utility': 'IKFK'}, shape=ikfk_shape,
                                     size=ikfk_size)
     switch.object.message.connect(net.SWITCH[0])
     pymel.parentConstraint(jnts[-1], switch.object)
 
     # plusMinusAverage
-    switch_util = general_utils.make_switch_utility(switch.object, tags={'Type': 'Switch', 'Utility': 'IKFK'})
+    switch_util = general_utils.make_switch_utility(switch.object, tags={'Region': net.Region, 'Side': net.Side,'Type': 'Switch', 'Utility': 'IKFK'})
 
     for orient, point in zip(net.ORIENTCONSTRAINT.listConnections(), net.POINTCONSTRAINT.listConnections()):
         switch_util.output1D.connect(point.w0)
@@ -154,10 +155,10 @@ def build_ikfk_limb(jnts=None,
     ik_vis_condition = general_utils.make_condition(secondTerm=1.0)
     switch.object.IKFK.connect(ik_vis_condition.firstTerm)
 
-    for ik_ctrl, pole, anno in zip(net.IK_CTRL.connections(), net.POLE.connections(), net.ANNO.connections()):
+    for ik_ctrl, pole, annotation in zip(net.IK_CTRL.connections(), net.POLE.connections(), net.ANNO.connections()):
         ik_vis_condition.outColorR.connect(ik_ctrl.visibility)
         ik_vis_condition.outColorR.connect(pole.visibility)
-        ik_vis_condition.outColorR.connect(anno.visibility)
+        ik_vis_condition.outColorR.connect(annotation.visibility)
 
 def build_reverse_foot_rig(jnts=None, net=None):
     pass
@@ -186,8 +187,6 @@ if __name__ == '__main__':
             jnt_dict[key] = [jnt]
 
     # Create Network Nodes
-    print jnt_dict
-
     for key in jnt_dict.keys():
         info = naming_utils.ItemInfo(key)
         net = lib_network.create_network_node(name=key,
@@ -205,8 +204,6 @@ if __name__ == '__main__':
                                                           'SWITCH',
                                                           'ORIENTCONSTRAINT',
                                                           'POINTCONSTRAINT'])
-
-
 
         # Connect Joints
         for idx, jnt in enumerate(joint_utils.get_joint_chain(jnt_dict[key])):

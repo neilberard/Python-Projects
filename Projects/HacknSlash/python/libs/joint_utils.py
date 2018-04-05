@@ -109,11 +109,12 @@ def get_joint_chain(joint_list):
     return chain
 
 
-def rebuild_joint_chain(joint_list, name):
+def rebuild_joint_chain(joint_list, name, net):
     """
     Duplicate joints and match hierachy
     :param joint_list: Single chain of joints
     :param name: Additional suffix
+    :param net: network node to connect message output to
     :return: New joint chain
     """
     new_joints = []
@@ -148,8 +149,8 @@ def rebuild_joint_chain(joint_list, name):
 
         # Tags
         naming_utils.add_tags(new_jnt,
-                              {'Region': info.region,
-                               'Side': info.side,
+                              {'Region': net.Region,
+                               'Side': net.Side,
                                'Utility': name})
 
         # Rebuild Hierarchy
@@ -179,38 +180,41 @@ def rebuild_joint_chain(joint_list, name):
     return new_joints
 
 
-def build_ik_fk_joints(joints, network=None):
+def build_ik_fk_joints(joints, net=None):
+    """
+    :param joints: Base joint chain to build off of.
+    :param net: network node to connect message out put to.
+    :return: FK_Joints[], IK_Joints[]
+    """
     jnt_sets = []
 
     # Build Joint Chains
     for index in [consts.ALL['FK'], consts.ALL['IK']]:
-        jnt_sets.append(rebuild_joint_chain(joints, name=index))
+        jnt_sets.append(rebuild_joint_chain(joints, name=index, net=net))
 
     # Build constriants and Connect to network
     for idx, jnt in enumerate(get_joint_chain(joints)):
-
-        info = naming_utils.ItemInfo(jnt)
 
         # FK is W0, IK is W1
         point = pymel.pointConstraint([jnt_sets[0][idx], jnt_sets[1][idx], jnt])
         orient = pymel.orientConstraint([jnt_sets[0][idx], jnt_sets[1][idx], jnt])
 
         # Connect Message to Network
-        jnt_sets[0][idx].message.connect(network.FK_JOINTS[idx])  # FK
-        jnt_sets[1][idx].message.connect(network.IK_JOINTS[idx])  # IK
+        jnt_sets[0][idx].message.connect(net.FK_JOINTS[idx])  # FK
+        jnt_sets[1][idx].message.connect(net.IK_JOINTS[idx])  # IK
 
-        point.message.connect(network.POINTCONSTRAINT[idx])
-        orient.message.connect(network.ORIENTCONSTRAINT[idx])
+        point.message.connect(net.POINTCONSTRAINT[idx])
+        orient.message.connect(net.ORIENTCONSTRAINT[idx])
 
         # Tags Point
         naming_utils.add_tags(point,
-                              {'Region': info.region,
-                               'Side': info.side,
+                              {'Region': net.Region,
+                               'Side': net.Side,
                                'Utility': consts.ALL['IKFK']})
         # Tags Orient
         naming_utils.add_tags(orient,
-                              {'Region': info.region,
-                               'Side': info.side,
+                              {'Region': net.Region,
+                               'Side': net.Side,
                                'Utility': consts.ALL['IKFK']})
 
     return jnt_sets

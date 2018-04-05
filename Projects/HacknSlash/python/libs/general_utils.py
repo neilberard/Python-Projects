@@ -76,17 +76,17 @@ def build_annotation(pole, ik_joint):
     Draw a line from the pole vector ctrl to the ik joint for visual reference.
     :param pole: pole vector controller
     :param ik_joint: mid joint in the ik chain
-    :return: annotation, annotation parent
+    :return: anno, anno_parent, locator, point_constraint
     """
 
-    loc = pymel.spaceLocator(p=(0, 0, 0), a=True)
-    pymel.pointConstraint(ik_joint, loc, mo=False)
+    locator = pymel.spaceLocator(p=(0, 0, 0), a=True)
+    point_constraint = pymel.pointConstraint(ik_joint, locator, mo=False)
 
-    anno = pymel.annotate(loc, tx='', p=(0, 0, 0))
-    annoParent = anno.listRelatives(parent=True)[0]
+    annotation = pymel.annotate(locator, tx='', p=(0, 0, 0))
+    anno_parent = annotation.listRelatives(parent=True)[0]
 
-    pymel.pointConstraint(pole, annoParent, maintainOffset=False)
-    return anno, annoParent
+    pymel.pointConstraint(pole, anno_parent, maintainOffset=False)
+    return annotation, anno_parent, locator, point_constraint
 
 
 
