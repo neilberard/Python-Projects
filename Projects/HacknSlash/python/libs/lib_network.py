@@ -12,7 +12,7 @@ def get_message_connection(src_obj):
     print src_obj.message.listConnections(plugs=True)
 
 
-def create_network_node(name, tags, attributes):
+def create_network_node(name, tags, attributes=None):
     """
 
     :param name: str
