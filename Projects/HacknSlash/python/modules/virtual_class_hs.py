@@ -1,4 +1,30 @@
 import pymel.all as pymel
+from python.libs import naming_utils
+
+import logging
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+
+def attach_class(node):
+
+    if isinstance(node, pymel.nodetypes.Joint):
+        node.addAttr('_class', dt='string')
+        node._class.set('_JointNode')
+        return
+
+    if isinstance(node, pymel.nodetypes.Transform):
+        node.addAttr('_class', dt='string')
+        node._class.set('_TransformNode')
+        return
+
+    if isinstance(node, pymel.nodetypes.Network):
+        node.addAttr('_class', dt='string')
+        node._class.set('_NetworkNode')
+        return
+
+    log.warning('Could not find class for: '.format(node))
 
 
 class BaseNode():
@@ -22,6 +48,20 @@ class BaseNode():
     @property
     def ik_jnts(self):
         return self.network.IK_JOINTS.connections()
+
+    @property
+    def name_info(self):
+        return naming_utils.ItemInfo(self)
+
+    @property
+    def get_class(self):
+        return self._class.get()
+
+    def add_tags(self, tags):
+        try:
+            naming_utils.add_tags(self, tags)
+        except Exception as ex:
+            log.warning('Failed to add tags: {}, {}, {}'.format(self, tags, ex))
 
 
 class JointNode(pymel.nodetypes.Joint, BaseNode):
@@ -61,7 +101,7 @@ class JointNode(pymel.nodetypes.Joint, BaseNode):
         newNode.addAttr('_class', dt='string')
         newNode._class.set('_JointNode')
 
-class TransformNode(pymel.nodetypes.Joint, BaseNode):
+class TransformNode(pymel.nodetypes.Transform, BaseNode):
     """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod

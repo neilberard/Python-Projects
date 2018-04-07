@@ -1,6 +1,9 @@
 from python.libs import consts
 reload(consts)
 
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 class ItemInfo(object):
     def __init__(self, str_name):
@@ -100,8 +103,12 @@ def add_tags(obj, tags):
     """
     for key in tags.keys():
         if not obj.hasAttr(key):
-            obj.addAttr(key, type='string', keyable=False)
-            obj.setAttr(key, tags[key])
+            try:
+                obj.addAttr(key, type='string', keyable=False)
+                obj.setAttr(key, tags[key])
+            except Exception as ex:
+                log.warning(ex)
+
 
 
 def list_tags(obj):

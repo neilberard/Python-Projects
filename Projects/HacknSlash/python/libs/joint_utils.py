@@ -1,6 +1,8 @@
 import pymel.core as pymel
 import maya.OpenMaya as om
-from python.libs import consts, naming_utils
+from python.libs import consts
+from python.libs import naming_utils
+from python.modules import virtual_class_hs
 import math
 import logging
 
@@ -83,28 +85,31 @@ def get_joint_chain(joint_list):
     for jnt in joint_list:
         if jnt.getParent() not in joint_list:
             root = jnt
+            log.info(['Root: ', jnt])
             break
 
     chain.append(root)
 
-    child = root
+    cur_jnt = root
 
     # Iterate down the chain starting from the root appending each joint's child.
     for i in range(1000):
 
-        if not child.getChildren():
+        if not cur_jnt.getChildren():
             break
 
-        if len(child.getChildren()) > 1:
-            print "Multiple chains detected.", child.getChildren()
+        if cur_jnt.getChildren()[0] not in joint_list:
             break
 
-        if child.getChildren()[0] not in joint_list:
+        if len(cur_jnt.getChildren()) > 1:
+            log.info("Multiple chains detected for jnt:{}{}".format(cur_jnt, cur_jnt.getChildren()))
             break
 
         else:
-            chain.append(child.getChildren()[0])
-            child = child.getChildren()[0]
+            cur_jnt = cur_jnt.getChildren()[0]
+            chain.append(cur_jnt)
+
+    log.info('JNT CHAIN: {}'.format(chain))
 
     return chain
 
@@ -117,6 +122,9 @@ def rebuild_joint_chain(joint_list, name, net):
     :param net: network node to connect message output to
     :return: New joint chain
     """
+
+    log.info('rebuild_joint_chain: {}, {}, {}'.format(joint_list, name, net))
+
     new_joints = []
 
     for jnt in joint_list:
@@ -125,6 +133,7 @@ def rebuild_joint_chain(joint_list, name, net):
         new_name = naming_utils.concatenate([info.side,
                                              info.base_name,
                                              info.joint_name,
+                                             info.index,
                                              name])
 
         # Getting joint hierarchy.
@@ -147,14 +156,18 @@ def rebuild_joint_chain(joint_list, name, net):
 
         new_joints.append(new_jnt)
 
+        # Add Virtual Class
+        # try:
+        #     virtual_class_hs.attach_class(new_jnt)
+        # except Exception as ex:
+        #     log.warning(ex)
+
+
         # Tags
-        naming_utils.add_tags(new_jnt,
-                              {'Region': net.Region,
-                               'Side': net.Side,
-                               'Utility': name})
+        naming_utils.add_tags(new_jnt, tags={'Network': net.name(), 'Utility': name})
 
         # Rebuild Hierarchy
-        if jnt_parent:  # If a parent FK jnt exists, parent this fk jnt to it.
+        if jnt_parent and jnt_parent in joint_list:  # If a parent FK jnt exists, parent this fk jnt to it.
             new_parent_name = new_jnt.name().replace(jnt.name(), jnt_parent.name())
 
             # FK joints
@@ -175,8 +188,6 @@ def rebuild_joint_chain(joint_list, name, net):
                 except pymel.MayaNodeError:
                     pass  # Couldn't find a parent. Move on.
 
-
-
     return new_joints
 
 
@@ -186,6 +197,8 @@ def build_ik_fk_joints(joints, net=None):
     :param net: network node to connect message out put to.
     :return: FK_Joints[], IK_Joints[]
     """
+    log.info('build_ik_fk_joints: {}, {}'.format(joints, net))
+
     jnt_sets = []
 
     # Build Joint Chains
@@ -207,31 +220,28 @@ def build_ik_fk_joints(joints, net=None):
         orient.message.connect(net.ORIENTCONSTRAINT[idx])
 
         # Tags Point
-        naming_utils.add_tags(point,
-                              {'Region': net.Region,
-                               'Side': net.Side,
-                               'Utility': consts.ALL['IKFK']})
+        naming_utils.add_tags(point, tags={'Network': net.name(), 'Utility': consts.ALL['IKFK']})
         # Tags Orient
-        naming_utils.add_tags(orient,
-                              {'Region': net.Region,
-                               'Side': net.Side,
-                               'Utility': consts.ALL['IKFK']})
+        naming_utils.add_tags(orient, tags={'Network': net.name(), 'Utility': consts.ALL['IKFK']})
 
     return jnt_sets
 
 
-def create_offset_groups(objects):
+def create_offset_groups(objects, net=None):
     """
     Parents Each object to a group node with the object's transforms.
     :param objects: list of pymel transforms to group.
     :return: List of offset groups.
     """
+    log.info('create_offset_groups: {}'.format(objects))
+
     if not isinstance(objects, list):
         objects = [objects]
 
     offset_groups = []
 
     for transform in objects:
+
         log.info(transform)
         info = naming_utils.ItemInfo(transform)
         group_name = naming_utils.concatenate([info.side,
@@ -244,6 +254,12 @@ def create_offset_groups(objects):
 
         new_group = pymel.group(empty=True, name=group_name)
         new_group.setMatrix(transform_matrix, worldSpace=True)
+
+        # Add Virtual Class
+        virtual_class_hs.attach_class(new_group)
+
+        if net:
+            naming_utils.add_tags(new_group, tags={'Network': net.name()})
 
         if transform_parent:
             new_group.setParent(transform_parent)
