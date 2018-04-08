@@ -1,6 +1,5 @@
 import pymel.all as pymel
 from python.libs import naming_utils
-
 import logging
 
 log = logging.getLogger(__name__)
@@ -9,20 +8,25 @@ log.setLevel(logging.DEBUG)
 
 def attach_class(node):
 
+    if node.hasAttr('_class'):
+        node.deleteAttr('_class')
+
     if isinstance(node, pymel.nodetypes.Joint):
         node.addAttr('_class', dt='string')
         node._class.set('_JointNode')
-        return
+        return pymel.PyNode(node)
 
     if isinstance(node, pymel.nodetypes.Transform):
         node.addAttr('_class', dt='string')
         node._class.set('_TransformNode')
-        return
+        return pymel.PyNode(node)
 
     if isinstance(node, pymel.nodetypes.Network):
         node.addAttr('_class', dt='string')
-        node._class.set('_NetworkNode')
-        return
+        node._class.set('_LimbNode')
+        return pymel.PyNode(node)
+
+
 
     log.warning('Could not find class for: '.format(node))
 
@@ -57,6 +61,15 @@ class BaseNode():
     def get_class(self):
         return self._class.get()
 
+    @property
+    def side(self):
+        return self.Side.get()
+
+    @property
+    def region(self):
+        return self.Region.get()
+
+
     def add_tags(self, tags):
         try:
             naming_utils.add_tags(self, tags)
@@ -66,6 +79,8 @@ class BaseNode():
 
 class JointNode(pymel.nodetypes.Joint, BaseNode):
     """ this is an example of how to create your own subdivisions of existing nodes. """
+
+    NODE_TYPE = 'JointNode'
 
     @classmethod
     def list(cls, *args, **kwargs):
@@ -97,9 +112,10 @@ class JointNode(pymel.nodetypes.Joint, BaseNode):
     def _postCreateVirtual(cls, newNode):
         print newNode
         """ This is called before creation, pymel/cmds allowed."""
+
         pymel.addAttr(newNode, longName='_class', dt='string')
-        newNode.addAttr('_class', dt='string')
         newNode._class.set('_JointNode')
+
 
 class TransformNode(pymel.nodetypes.Transform, BaseNode):
     """ this is an example of how to create your own subdivisions of existing nodes. """
@@ -182,11 +198,17 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('SWITCH', at='message', multi=True)
         newNode.addAttr('ORIENTCONSTRAINT', at='message', multi=True)
         newNode.addAttr('POINTCONSTRAINT', at='message', multi=True)
+        newNode.addAttr('IK_HANDLE', at='message', multi=True)
+
 
     #Overwritting BaseClass Method
     @property
     def network(self):
         return self
+
+    @property
+    def ik_handles(self):
+        return self.IK_HANDLE.get()
 
 
 # Classes need to be registered to exist in the scene.

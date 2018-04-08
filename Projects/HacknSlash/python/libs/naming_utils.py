@@ -103,11 +103,10 @@ def add_tags(obj, tags):
     """
     for key in tags.keys():
         if not obj.hasAttr(key):
-            try:
-                obj.addAttr(key, type='string', keyable=False)
-                obj.setAttr(key, tags[key])
-            except Exception as ex:
-                log.warning(ex)
+            obj.addAttr(key, type='string', keyable=False)
+            obj.setAttr(key, tags[key])
+        else:
+            obj.setAttr(key, tags[key])
 
 
 

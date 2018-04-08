@@ -7,11 +7,11 @@ REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Side', 'Torso']
 
 ARM = ['Shoulder', 'Elbow', 'Wrist']
 
-FOOT = ['Ball', 'Toe', 'Foot']
+FOOT = ['Ball', 'Toe', 'Ankle']
 
 HAND = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
 
-LEG = ['Hip', 'Knee', 'Ankle']
+LEG = ['Hip', 'Knee', 'Ankle', 'Ball', 'Toe']
 
 SIDE = ['L', 'R']
 

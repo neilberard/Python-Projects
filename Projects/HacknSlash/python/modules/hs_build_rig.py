@@ -16,19 +16,20 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+def unbuild_limb(net):
 
-def build_ikfk_limb(jnts=None,
-                    net=None,
-                    fk_size=1.0,
-                    fk_shape='Circle',
-                    ik_size=1.0,
-                    ik_shape='Cube01',
-                    pole_size=1.0,
-                    pole_shape='Cube01',
-                    ikfk_size=1.0,
-                    ikfk_shape='IKFK',
-                    region='',
-                    side=''):
+    assert isinstance(net, virtual_class_hs.LimbNode)
+    print net, 'NETWORK'
+
+    to_delete = []
+    for obj in pymel.ls():
+        if obj.hasAttr('Network') and obj.Network.get() == net.name() and obj not in net.jnts:
+            to_delete.append(obj)
+
+    pymel.delete(to_delete)
+
+
+def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
 
     """
     :param jnts:
@@ -51,28 +52,27 @@ def build_ikfk_limb(jnts=None,
         net = virtual_class_hs.LimbNode()
         naming_utils.add_tags(net, tags={'Region': region, 'Side': side})
         naming_utils.add_message_attr(net, attributes=['JOINTS',
-                                                      'IK_JOINTS',
-                                                      'FK_JOINTS',
-                                                      'IK_CTRL',
-                                                      'FK_CTRL',
-                                                      'POLE',
-                                                      'ANNO',
-                                                      'IK_HANDLE',
-                                                      'SWITCH',
-                                                      'ORIENTCONSTRAINT',
-                                                      'POINTCONSTRAINT'])
+                                                       'IK_JOINTS',
+                                                       'FK_JOINTS',
+                                                       'IK_CTRL',
+                                                       'FK_CTRL',
+                                                       'POLE',
+                                                       'ANNO',
+                                                       'IK_HANDLE',
+                                                       'SWITCH',
+                                                       'ORIENTCONSTRAINT',
+                                                       'POINTCONSTRAINT'])
 
     jnts = joint_utils.get_joint_chain(jnts)
 
     # Attach virtual class
-    for jnt in jnts:
+    for idx, jnt in enumerate(jnts):
         try:
-            virtual_class_hs.attach_class(jnt)
-            assert isinstance(jnt, virtual_class_hs.JointNode)
-            jnt.add_tags(tags={'Network': net.name()})
-        except Exception as ex:
-            log.warning(ex)
+            jnts[idx] = virtual_class_hs.attach_class(jnt)
+        except:
             pass
+        jnts[idx].add_tags(tags={'Network': net.name()})
+
 
     # Connect Joints to Net
     try:
@@ -90,23 +90,21 @@ def build_ikfk_limb(jnts=None,
 
     fk_ctrls = []
     for fk_jnt, jnt in zip(fk_jnts, jnts):
-        try:
 
-            # assert isinstance(jnt.name_info, naming_utils.ItemInfo)  # For IDE to recognize stored methods
-            ctrl_name = naming_utils.concatenate([net.Side.get(),
-                                                  jnt.name_info.base_name,
-                                                  jnt.name_info.joint_name,
-                                                  jnt.name_info.index,
-                                                  'FK',
-                                                  'CTRL'])
-            ctrl_tags = {'Network': net.name(), 'Type': 'CTRL', 'Utility': 'FK'}
+        # assert isinstance(jnt.name_info, naming_utils.ItemInfo)  # For IDE to recognize stored methods
+        ctrl_name = naming_utils.concatenate([net.Side.get(),
+                                              jnt.name_info.base_name,
+                                              jnt.name_info.joint_name,
+                                              jnt.name_info.index,
+                                              'FK',
+                                              'CTRL'])
+        ctrl_tags = {'Network': net.name(), 'Type': 'CTRL', 'Utility': 'FK'}
+        log.info('Building FK CTRL for : {}'.format(fk_jnt))
+        ctrl = build_ctrls.CreateCtrl(jnt=fk_jnt, name=ctrl_name, network=net, tags=ctrl_tags, size=fk_size, shape=fk_shape)
+        fk_ctrls.append(ctrl)
 
-            log.info('Building FK CTRL for : {}'.format(fk_jnt))
-            ctrl = build_ctrls.CreateCtrl(jnt=fk_jnt, name=ctrl_name, network=net, tags=ctrl_tags, size=fk_size, shape=fk_shape)
-            fk_ctrls.append(ctrl)
-
-        except Exception as ex:
-            log.error(ex)
+        # Add Virtual Class
+        virtual_class_hs.attach_class(ctrl.object)
 
     # Parent CTRLS
     for a in fk_ctrls:
@@ -124,11 +122,11 @@ def build_ikfk_limb(jnts=None,
 
     # Parent constraint joints
     for a in fk_ctrls:
-        pymel.parentConstraint(a.object, a.jnt)
+        parent_constraint = pymel.parentConstraint(a.object, a.jnt)
+        naming_utils.add_tags(parent_constraint, tags={'Network': net.name()})
 
     # Create offsets
     joint_utils.create_offset_groups([x.object for x in fk_ctrls], net=net)
-
     objects = [x.object for x in fk_ctrls]
 
     # Connect Message attr
@@ -136,79 +134,80 @@ def build_ikfk_limb(jnts=None,
         obj.message.connect(net.FK_CTRL[idx])
 
     # IK CTRLS
-    ikhandle_name = naming_utils.concatenate([jnts[-1].name_info.side,
-                                              jnts[-1].name_info.base_name,
-                                              jnts[-1].name_info.joint_name,
-                                              jnts[-1].name_info.index, 'IK', 'HDL'])
+    ikhandle_name = naming_utils.concatenate([jnts[2].name_info.side,
+                                              jnts[2].name_info.base_name,
+                                              jnts[2].name_info.joint_name,
+                                              jnts[2].name_info.index, 'IK', 'HDL'])
 
-    #Add Virtual Class : Todo: Create an IK handle virtual class.
-
-    ikhandle = pymel.ikHandle(startJoint=ik_jnts[0], endEffector=ik_jnts[-1], name=ikhandle_name)[0]
+    ikhandle = pymel.ikHandle(startJoint=ik_jnts[0], endEffector=ik_jnts[2], name=ikhandle_name)[0]
+    ikhandle.message.connect(net.IK_HANDLE[0])
     log.info('Building IK CTRLS: {}, {}'.format(ikhandle_name, type(ikhandle)))
     ik_offset = joint_utils.create_offset_groups(ikhandle, net=net)
 
     # Ik Ctrl
     ik_ctrl_name = naming_utils.concatenate([net.Side.get(),
-                                             jnts[-1].name_info.base_name,
-                                             jnts[-1].name_info.joint_name,
+                                             jnts[2].name_info.base_name,
+                                             jnts[2].name_info.joint_name,
                                              'IK', 'CTRL'])
-    ikctrl = build_ctrls.CreateCtrl(jnt=ik_jnts[-1], name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'})
+    ikctrl = build_ctrls.CreateCtrl(jnt=ik_jnts[2], name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'})
     ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ik_offset)
-    pymel.orientConstraint(ikctrl.object, ik_jnts[-1])
+    pymel.orientConstraint(ikctrl.object, ik_offset)
     joint_utils.create_offset_groups(ikctrl.object, net=net)
 
-    # POLE
+    # POLE Ctrl
     pos, rot = joint_utils.get_pole_position(fk_jnts)
-    pole_name = naming_utils.concatenate([jnts[-1].name_info.base_name,
-                                          jnts[-1].name_info.joint_name,
-                                          jnts[-1].name_info.side,
+    pole_name = naming_utils.concatenate([jnts[2].name_info.base_name,
+                                          jnts[2].name_info.joint_name,
+                                          jnts[2].name_info.side,
                                           'Pole',
                                           'CTRL'])
-    pole_tags = {'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get(), 'Type': 'CTRL', 'Utility': 'IK'}
-    pole = build_ctrls.CreateCtrl(name=pole_name, jnt=ik_jnts[-1], network=net, shape=pole_shape, size=pole_size, tags=pole_tags)
+    pole_tags = {'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'}
+    pole = build_ctrls.CreateCtrl(name=pole_name, jnt=ik_jnts[2], network=net, shape=pole_shape, size=pole_size, tags=pole_tags)
     pole.object.setTranslation(pos, space='world')
     pole.object.setRotation(rot)
     pole.object.message.connect(net.POLE[0])
+    joint_utils.create_offset_groups(pole.object, name='Offset')
+
+    virtual_class_hs.attach_class(pole.object)
     pymel.poleVectorConstraint(pole.object, ikhandle)
 
     # Annotation. Line between pole and mid ik_jnts joint
     anno_name = naming_utils.concatenate([jnts[1].name_info.base_name, jnts[1].name_info.joint_name])
     annotation, anno_parent, locator, point_constraint_a, point_constraint_b = general_utils.build_annotation(pole.object, net.IK_JOINTS[1].connections()[0], net=net, name=anno_name)
     for obj in [annotation, anno_parent, locator, point_constraint_a]:
-        naming_utils.add_tags(obj, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get()})
+        naming_utils.add_tags(obj, tags={'Network': net.name()})
     annotation.message.connect(net.ANNO[0])
     anno_parent.message.connect(net.ANNO[1])
 
     # Switch CTRL
-    switch_name = naming_utils.concatenate([jnts[-1].name_info.base_name, jnts[-1].name_info.joint_name, 'IKFK', 'CTRL'])
+    switch_name = naming_utils.concatenate([jnts[2].name_info.base_name, jnts[2].name_info.joint_name, 'IKFK', 'CTRL'])
     switch_tags = {'Network': net.name(), 'Type': 'Switch', 'Utility': 'IKFK'}
-
-    switch = build_ctrls.CreateCtrl(jnt=jnts[-1], name=switch_name, network=net, tags=switch_tags, shape=ikfk_shape, size=ikfk_size)
+    switch = build_ctrls.CreateCtrl(jnt=jnts[2], name=switch_name, network=net, tags=switch_tags, shape=ikfk_shape, size=ikfk_size)
     switch.object.message.connect(net.SWITCH[0])
-    pymel.parentConstraint(jnts[-1], switch.object)
+    pymel.parentConstraint(jnts[2], switch.object)
+    virtual_class_hs.attach_class(switch.object)
 
     # plusMinusAverage
-    switch_util = general_utils.make_switch_utility(switch.object, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get(), 'Type': 'Switch', 'Utility': 'IKFK'})
-
+    switch_util = general_utils.make_switch_utility(switch.object, tags={'Network': net.name(), 'Type': 'Switch', 'Utility': 'IKFK'})
     for orient, point in zip(net.ORIENTCONSTRAINT.listConnections(), net.POINTCONSTRAINT.listConnections()):
         switch_util.output1D.connect(point.w0)
         switch_util.output1D.connect(orient.w0)
-
     for orient, point in zip(net.ORIENTCONSTRAINT.listConnections(), net.POINTCONSTRAINT.listConnections()):
         switch.object.IKFK.connect(point.w1)
         switch.object.IKFK.connect(orient.w1)
 
     # FK Vis Condition
     fk_vis_condition = general_utils.make_condition(secondTerm=1.0)
+    naming_utils.add_tags(fk_vis_condition, tags={'Network': net.name()})
     switch_util.output1D.connect(fk_vis_condition.firstTerm)
-
     for fk_ctrl, fk_joint in zip(net.FK_CTRL.connections(), net.FK_JOINTS.connections()):
         fk_vis_condition.outColorR.connect(fk_ctrl.visibility)
         fk_vis_condition.outColorR.connect(fk_joint.visibility)
 
     # IK Vis Condition
     ik_vis_condition = general_utils.make_condition(secondTerm=1.0)
+    naming_utils.add_tags(ik_vis_condition, tags={'Network': net.name()})
     switch.object.IKFK.connect(ik_vis_condition.firstTerm)
 
     for ik_ctrl, pole, annotation in zip(net.IK_CTRL.connections(), net.POLE.connections(), net.ANNO.connections()):
@@ -217,24 +216,110 @@ def build_ikfk_limb(jnts=None,
         ik_vis_condition.outColorR.connect(annotation.visibility)
 
 def build_reverse_foot_rig(jnts=None, net=None):
-    pass
 
+    assert isinstance(net, virtual_class_hs.LimbNode)
+
+    # Build Foot IK Handles
+    ikhandle_name = naming_utils.concatenate([net.jnts[3].name_info.side,
+                                              net.jnts[3].name_info.base_name,
+                                              net.jnts[3].name_info.joint_name,
+                                              net.jnts[3].name_info.index, 'IK', 'HDL'])
+    ikhandle_a = pymel.ikHandle(startJoint=net.ik_jnts[2], endEffector=net.ik_jnts[3], name=ikhandle_name)[0]
+    ikhandle_a.message.connect(net.IK_HANDLE[1])
+    ikhandle_name = naming_utils.concatenate([net.jnts[4].name_info.side,
+                                              net.jnts[4].name_info.base_name,
+                                              net.jnts[4].name_info.joint_name,
+                                              net.jnts[4].name_info.index, 'IK', 'HDL'])
+    ikhandle_b = pymel.ikHandle(startJoint=net.ik_jnts[3], endEffector=net.ik_jnts[4], name=ikhandle_name)[0]
+    ikhandle_b.message.connect(net.IK_HANDLE[2])
+
+    # Storing Ankle IK Handle parent for later.
+    ankle_ik_grp = net.ik_handles[0].getParent()
+
+    # Ball Roll
+    grp_name = 'Ball_Roll'
+    ball_roll_grp = pymel.group(empty=True, name=grp_name)
+    ball_roll_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(ball_roll_grp, tags={'Network': net.name()})
+
+    pymel.parent(net.ik_handles[0], net.ik_handles[1], ball_roll_grp)
+
+
+    # Toe Wiggle
+    grp_name = 'Toe_Wiggle'
+    toe_wiggle_grp = pymel.group(empty=True, name=grp_name)
+    toe_wiggle_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(toe_wiggle_grp, tags={'Network': net.name()})
+    pymel.parent(net.ik_handles[2], toe_wiggle_grp)
+
+    # Toe Pivot
+    grp_name = 'Toe_Roll'
+    toe_roll_grp = pymel.group(empty=True, name=grp_name)
+    toe_roll_grp.setMatrix(net.jnts[4].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(toe_roll_grp, tags={'Network': net.name()})
+    pymel.parent(ball_roll_grp, toe_wiggle_grp, toe_roll_grp)
+
+    # Left Bank
+    grp_name = 'Left_Bank'
+    left_bank_grp = pymel.group(empty=True, name=grp_name)
+    left_bank_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(left_bank_grp, tags={'Network': net.name()})
+    pymel.parent(toe_roll_grp, left_bank_grp)
+
+    # Right Bank
+    grp_name = 'Right_Bank'
+    righ_bank_grp = pymel.group(empty=True, name=grp_name)
+    righ_bank_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(righ_bank_grp, tags={'Network': net.name()})
+    pymel.parent(left_bank_grp, righ_bank_grp)
+
+    grp_name = 'Ankle Roll'
+    ankle_roll_grp = pymel.group(empty=True, name=grp_name)
+    ankle_roll_grp.setMatrix(net.jnts[2].getMatrix(worldSpace=True), worldSpace=True)
+    naming_utils.add_tags(ankle_roll_grp, tags={'Network': net.name()})
+    pymel.parent(righ_bank_grp, ankle_roll_grp)
+
+    pymel.parent(ankle_roll_grp, ankle_ik_grp)
+
+
+    #
+    # # Ik Ctrl
+    # ik_ctrl_name = naming_utils.concatenate([net.Side.get(),
+    #                                          jnts[2].name_info.base_name,
+    #                                          jnts[2].name_info.joint_name,
+    #                                          'IK', 'CTRL'])
+    # ikctrl = build_ctrls.CreateCtrl(jnt=ik_jnts[2], name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'})
+    # ikctrl.object.message.connect(net.IK_CTRL[0])
+    # pymel.pointConstraint(ikctrl.object, ik_offset)
+    # pymel.orientConstraint(ikctrl.object, ik_jnts[2])
+    # joint_utils.create_offset_groups(ikctrl.object, net=net)
+    #
+    # pass
 
 """TEST CODE"""
+
 if __name__ == '__main__':
-    print 'test'
+    print 'Running hs_build_rig'
+
+    for net in pymel.ls(type=virtual_class_hs.LimbNode):
+
+        print net
+        try:
+            unbuild_limb(net)
+        except Exception as ex:
+            log.warning(ex)
+            pass
 
     pymel.delete(pymel.ls(type='network'))
-    pymel.delete(pymel.ls(type='condition'))
-    pymel.delete(pymel.ls(type='plusMinusAverage'))
 
     jnt_dict = {}
 
+    for jnt in pymel.ls():
+        if jnt.hasAttr('_class'):
+            jnt.deleteAttr('_class')
+
     for jnt in pymel.ls(type='joint'):
-        print jnt
-
         info = naming_utils.ItemInfo(jnt)
-
         key = naming_utils.concatenate([info.side, info.region])
 
         if key in jnt_dict:
@@ -245,37 +330,38 @@ if __name__ == '__main__':
     # Create Network Nodes
     for key in jnt_dict.keys():
         info = naming_utils.ItemInfo(key)
-        net = lib_network.create_network_node(name=key,
-                                              tags={'Type': 'IKFK',
-                                                    'Region': info.region,
-                                                    'Side': info.side},
-                                              attributes=['JOINTS',
-                                                          'IK_JOINTS',
-                                                          'FK_JOINTS',
-                                                          'IK_CTRL',
-                                                          'FK_CTRL',
-                                                          'POLE',
-                                                          'ANNO',
-                                                          'IK_HANDLE',
-                                                          'SWITCH',
-                                                          'ORIENTCONSTRAINT',
-                                                          'POINTCONSTRAINT'])
+        net = virtual_class_hs.LimbNode()
+        pymel.rename(net, naming_utils.concatenate([key, 'Net']))
+        naming_utils.add_tags(net, tags={'Type': 'IKFK', 'Region': info.region, 'Side': info.side})
 
         # Connect Joints
         for idx, jnt in enumerate(joint_utils.get_joint_chain(jnt_dict[key])):
             jnt.message.connect(net.JOINTS[idx])
 
-
-    # Build Limbs
+    # Build Arms
     for net in pymel.ls(type='network'):
-        if net.Region.get() == 'Arm' or net.Region.get() == 'Leg':
-
-            net.addAttr('_class', dt='string')
-            net._class.set('_LimbNode')
-
-            print net.JOINTS.listConnections()
-            #
+        if net.Region.get() == 'Arm':
             build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net)
+
+    # Build Leg
+    for net in pymel.ls(type='network'):
+        if net.Region.get() == 'Leg':
+            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='Cube01')  # todo: add support for mirrored joints
+            build_reverse_foot_rig(net=net)
+
+
+    # Build Reverse Foot
+    for net in pymel.ls(type='network'):
+
+        foot_net = None
+        if net.Region.get() == 'Foot':
+            for leg_network in pymel.ls(type='network'):
+                if leg_network.side == net.side:
+                    foot_net = net
+            build_reverse_foot_rig(jnts=net.jnts, net=foot_net)
+    #
+
+
 
 
 

@@ -227,7 +227,7 @@ def build_ik_fk_joints(joints, net=None):
     return jnt_sets
 
 
-def create_offset_groups(objects, net=None):
+def create_offset_groups(objects, net=None, name=None):
     """
     Parents Each object to a group node with the object's transforms.
     :param objects: list of pymel transforms to group.
@@ -244,15 +244,27 @@ def create_offset_groups(objects, net=None):
 
         log.info(transform)
         info = naming_utils.ItemInfo(transform)
-        group_name = naming_utils.concatenate([info.side,
-                                               info.base_name,
-                                               info.joint_name,
-                                               consts.ALL['GRP']])
+
+        if name:
+            grp_name = naming_utils.concatenate([info.side,
+                                                 info.base_name,
+                                                 info.joint_name,
+                                                 info.utility,
+                                                 info.index,
+                                                 name])
+
+        else:
+            grp_name = naming_utils.concatenate([info.side,
+                                                 info.base_name,
+                                                 info.joint_name,
+                                                 info.utility,
+                                                 info.index,
+                                                 consts.ALL['GRP']])
 
         transform_parent = transform.getParent()
         transform_matrix = transform.getMatrix(worldSpace=True)
 
-        new_group = pymel.group(empty=True, name=group_name)
+        new_group = pymel.group(empty=True, name=grp_name)
         new_group.setMatrix(transform_matrix, worldSpace=True)
 
         # Add Virtual Class
