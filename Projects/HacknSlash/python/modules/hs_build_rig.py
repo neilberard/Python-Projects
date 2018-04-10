@@ -1,5 +1,6 @@
 '''HSBuild_RIG'''
 import pymel.core as pymel
+import maya.OpenMaya as om
 from python.libs import lib_network, naming_utils
 from python.libs import build_ctrls
 from python.libs import joint_utils
@@ -150,9 +151,10 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
                                              jnts[2].name_info.joint_name,
                                              'IK', 'CTRL'])
     ikctrl = build_ctrls.CreateCtrl(jnt=ik_jnts[2], name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'})
+    ikctrl.object.setRotation([0, 0, 0])
     ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ik_offset)
-    pymel.orientConstraint(ikctrl.object, ik_offset)
+    pymel.orientConstraint(ikctrl.object, ik_offset, maintainOffset=True)
     joint_utils.create_offset_groups(ikctrl.object, net=net)
 
     # POLE Ctrl
@@ -300,7 +302,7 @@ def build_reverse_foot_rig(jnts=None, net=None):
 
 if __name__ == '__main__':
     print 'Running hs_build_rig'
-
+    #
     for net in pymel.ls(type=virtual_class_hs.LimbNode):
 
         print net
@@ -341,16 +343,16 @@ if __name__ == '__main__':
     # Build Arms
     for net in pymel.ls(type='network'):
         if net.Region.get() == 'Arm':
-            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net)
+            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='HandCube01')
 
     # Build Leg
     for net in pymel.ls(type='network'):
         if net.Region.get() == 'Leg':
-            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='Cube01')  # todo: add support for mirrored joints
+            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='FootCube01')  # todo: add support for mirrored joints
             build_reverse_foot_rig(net=net)
 
 
-    # Build Reverse Foot
+    # Build Reverse Footrw
     for net in pymel.ls(type='network'):
 
         foot_net = None
