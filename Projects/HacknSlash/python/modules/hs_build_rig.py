@@ -229,6 +229,15 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
 def build_reverse_foot_rig(jnts=None, net=None):
 
     assert isinstance(net, virtual_class_hs.LimbNode)
+    #Set attrs
+    foot_ik_ctrl = net.ik_ctrls[0]
+    foot_ik_ctrl.addAttr('Ankle_Roll', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Ball_Roll', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Toe_Roll', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Toe_Wiggle', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Left_Bank', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Right_Bank', at='float', keyable=True)
+
 
     # Build Foot IK Handles
     ikhandle_name = naming_utils.concatenate([net.jnts[3].name_info.side,
@@ -251,44 +260,55 @@ def build_reverse_foot_rig(jnts=None, net=None):
     grp_name = 'Ball_Roll'
     ball_roll_grp = pymel.group(empty=True, name=grp_name)
     ball_roll_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(ball_roll_grp, apply=True)
     naming_utils.add_tags(ball_roll_grp, tags={'Network': net.name()})
-
     pymel.parent(net.ik_handles[0], net.ik_handles[1], ball_roll_grp)
-
+    foot_ik_ctrl.Ball_Roll.connect(ball_roll_grp.rotateX)
 
     # Toe Wiggle
     grp_name = 'Toe_Wiggle'
     toe_wiggle_grp = pymel.group(empty=True, name=grp_name)
     toe_wiggle_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(toe_wiggle_grp, apply=True)
     naming_utils.add_tags(toe_wiggle_grp, tags={'Network': net.name()})
     pymel.parent(net.ik_handles[2], toe_wiggle_grp)
+    foot_ik_ctrl.Toe_Wiggle.connect(toe_wiggle_grp.rotateX)
+
 
     # Toe Pivot
     grp_name = 'Toe_Roll'
     toe_roll_grp = pymel.group(empty=True, name=grp_name)
     toe_roll_grp.setMatrix(net.jnts[4].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(toe_roll_grp , apply=True)
     naming_utils.add_tags(toe_roll_grp, tags={'Network': net.name()})
     pymel.parent(ball_roll_grp, toe_wiggle_grp, toe_roll_grp)
+    foot_ik_ctrl.Toe_Roll.connect(toe_roll_grp.rotateX)
 
     # Left Bank
     grp_name = 'Left_Bank'
     left_bank_grp = pymel.group(empty=True, name=grp_name)
     left_bank_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(left_bank_grp, apply=True)
     naming_utils.add_tags(left_bank_grp, tags={'Network': net.name()})
     pymel.parent(toe_roll_grp, left_bank_grp)
+    foot_ik_ctrl.Left_Bank.connect(left_bank_grp.rotateZ)
 
     # Right Bank
     grp_name = 'Right_Bank'
-    righ_bank_grp = pymel.group(empty=True, name=grp_name)
-    righ_bank_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
-    naming_utils.add_tags(righ_bank_grp, tags={'Network': net.name()})
-    pymel.parent(left_bank_grp, righ_bank_grp)
+    right_bank_grp = pymel.group(empty=True, name=grp_name)
+    right_bank_grp.setMatrix(net.jnts[3].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(right_bank_grp, apply=True)
+    naming_utils.add_tags(right_bank_grp, tags={'Network': net.name()})
+    pymel.parent(left_bank_grp, right_bank_grp)
+    foot_ik_ctrl.Right_Bank.connect(right_bank_grp.rotateZ)
 
     grp_name = 'Ankle Roll'
     ankle_roll_grp = pymel.group(empty=True, name=grp_name)
     ankle_roll_grp.setMatrix(net.jnts[2].getMatrix(worldSpace=True), worldSpace=True)
+    pymel.makeIdentity(ankle_roll_grp, apply=True)
     naming_utils.add_tags(ankle_roll_grp, tags={'Network': net.name()})
-    pymel.parent(righ_bank_grp, ankle_roll_grp)
+    pymel.parent(right_bank_grp, ankle_roll_grp)
+    foot_ik_ctrl.Ankle_Roll.connect(ankle_roll_grp.rotateX)
 
     pymel.parent(ankle_roll_grp, ankle_ik_grp)
 
@@ -350,9 +370,13 @@ if __name__ == '__main__':
             jnt.message.connect(net.JOINTS[idx])
 
     # Build Arms
-    for net in pymel.ls(type='network'):
-        if net.Region.get() == 'Arm':
-            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='HandCube01')
+    for net in pymel.ls(type=virtual_class_hs.LimbNode):
+        assert isinstance(net, virtual_class_hs.LimbNode)
+
+        if net.region == 'Arm':
+            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='Cube01')
+            pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
+
 
     # Build Leg
     for net in pymel.ls(type='network'):

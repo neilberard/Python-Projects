@@ -208,8 +208,32 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         return self
 
     @property
+    def ik_jnts(self):
+        return self.IK_JOINTS.connections()
+
+    @property
+    def fk_jnts(self):
+        return self.FK_JOINTS.connections()
+
+    @property
     def ik_handles(self):
-        return self.IK_HANDLE.get()
+        return self.IK_HANDLE.connections()
+
+    @property
+    def fk_ctrls(self):
+        return self.FK_CTRL.connections()
+
+    @property
+    def ik_ctrls(self):
+        return self.IK_CTRL.connections()
+
+    @property
+    def jnts(self):
+        return self.JOINTS.connections()
+
+    @property
+    def ik_snap_loc(self):
+        return self.IK_SNAP_LOC.connections()
 
 
 # Classes need to be registered to exist in the scene.
