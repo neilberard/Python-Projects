@@ -17,27 +17,24 @@ def to_ik(net):
 
         pos, rot = joint_utils.get_pole_position(net.IK_JOINTS.connections(), pole_dist=distance * 0.5)
         pole.setTranslation(pos, space='world')
-        pole.setRotation(rot)
+        pole.setRotation(rot, space='world')
 
         return
 
-
     # Match FK POS
-    fk_matrix = net.JOINTS.connections()[2].getMatrix(worldSpace=True)
+    ik_snap_target = net.IK_SNAP_LOC.connections()[0].getMatrix(worldSpace=True)
 
     ik_ctrl = net.IK_CTRL.connections()[0]
-    ik_ctrl.setMatrix(fk_matrix, worldSpace=True)
+    ik_ctrl.setMatrix(ik_snap_target, worldSpace=True)
 
     # Set Pole POS
-    print net.FK_JOINTS.connections()[0].getTranslation()
-
     distance = joint_utils.get_distance(net.FK_JOINTS.connections()[0],
                                         net.FK_JOINTS.connections()[1])
 
     pole = net.POLE.connections()[0]
     pos, rot = joint_utils.get_pole_position(net.FK_JOINTS.connections(), pole_dist=distance * 0.5)
     pole.setTranslation(pos, space='world')
-    pole.setRotation(rot)
+    pole.setRotation(rot, space='world')
 
     # Set Constraint Weight
     switch.IKFK.set(1)

@@ -150,11 +150,20 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
                                              jnts[2].name_info.base_name,
                                              jnts[2].name_info.joint_name,
                                              'IK', 'CTRL'])
-    ikctrl = build_ctrls.CreateCtrl(jnt=ik_jnts[2], name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'})
-    ikctrl.object.setRotation([0, 0, 0])
+    ikctrl = build_ctrls.CreateCtrl(name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'}, axis='Y')
+    ikctrl.object.setTranslation(net.jnts[2].getTranslation(worldSpace=True), worldSpace=True)
+    # IK Loc
+    ik_loc = pymel.spaceLocator()
+    ik_loc.message.connect(net.IK_SNAP_LOC[0])
+    naming_utils.add_tags(ik_loc, {'Network': net.name()})
+    pymel.pointConstraint([net.jnts[2], ik_loc])
+    pymel.orientConstraint([net.jnts[2], ik_loc], maintainOffset=True)
+
     ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ik_offset)
-    pymel.orientConstraint(ikctrl.object, ik_offset, maintainOffset=True)
+    orient_constraint = pymel.orientConstraint(ikctrl.object, ik_offset, maintainOffset=True)
+    print orient_constraint.getOffset(), "OFFSET"
+
     joint_utils.create_offset_groups(ikctrl.object, net=net)
 
     # POLE Ctrl
@@ -169,7 +178,7 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     pole.object.setTranslation(pos, space='world')
     pole.object.setRotation(rot)
     pole.object.message.connect(net.POLE[0])
-    joint_utils.create_offset_groups(pole.object, name='Offset')
+    joint_utils.create_offset_groups(pole.object, name='Offset', net=net)
 
     virtual_class_hs.attach_class(pole.object)
     pymel.poleVectorConstraint(pole.object, ikhandle)
@@ -352,7 +361,7 @@ if __name__ == '__main__':
             build_reverse_foot_rig(net=net)
 
 
-    # Build Reverse Footrw
+    # Build Reverse Foot
     for net in pymel.ls(type='network'):
 
         foot_net = None
@@ -361,7 +370,7 @@ if __name__ == '__main__':
                 if leg_network.side == net.side:
                     foot_net = net
             build_reverse_foot_rig(jnts=net.jnts, net=foot_net)
-    #
+
 
 
 

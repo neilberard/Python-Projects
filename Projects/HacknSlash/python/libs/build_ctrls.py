@@ -31,6 +31,7 @@ class CreateCtrl(object):
         :param jnt:
         :param network:
         :param tags:
+        :param axis: 'X', 'Y', 'Z', Use Z to align with limb, Y to align to world
         """
 
         # Ctrl Object
@@ -41,14 +42,23 @@ class CreateCtrl(object):
         self.shape = shape
         self.size = size
         self.jnt = jnt
+        self.matrix = [1.0, 0.0, 0.0, 0.0,
+                       0.0, 1.0, 0.0, 0.0,
+                       0.0, 0.0, 1.0, 0.0,
+                       0.0, 0.0, 0.0, 1.0]
+        self.name = name
 
         if self.jnt:
-            self.name = name
             self.ctrl_type = None
             self.children = jnt.getChildren()
             self.parent = jnt.getParent()
             self.matrix = jnt.getMatrix(worldSpace=True)
             self.make_object()
+
+        else:
+            self.make_object()
+
+
 
     def make_object(self):
         if not self.shape:
@@ -112,7 +122,6 @@ class ControlBuilder(object):
     def __init__(self, joints=None, network=None, ctrl_type=None):
         self.joints = joints
         self.network = network
-        self.ctrl_type = ctrl_type
         self.parent_constraint = True
         self.ctrls = {}
 

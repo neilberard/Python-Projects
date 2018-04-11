@@ -199,6 +199,7 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('ORIENTCONSTRAINT', at='message', multi=True)
         newNode.addAttr('POINTCONSTRAINT', at='message', multi=True)
         newNode.addAttr('IK_HANDLE', at='message', multi=True)
+        newNode.addAttr('IK_SNAP_LOC', at='message', multi=True)
 
 
     #Overwritting BaseClass Method
