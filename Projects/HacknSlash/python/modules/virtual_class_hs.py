@@ -1,5 +1,6 @@
 import pymel.all as pymel
 from python.libs import naming_utils
+from python.libs import joint_utils
 import logging
 
 log = logging.getLogger(__name__)
@@ -19,7 +20,9 @@ def attach_class(node):
     if isinstance(node, pymel.nodetypes.Transform):
         node.addAttr('_class', dt='string')
         node._class.set('_TransformNode')
-        return pymel.PyNode(node)
+        new_node = pymel.PyNode(node)
+        assert isinstance(new_node, TransformNode)
+        return new_node
 
     if isinstance(node, pymel.nodetypes.Network):
         node.addAttr('_class', dt='string')
@@ -39,7 +42,8 @@ class BaseNode():
 
     @property
     def network(self):
-        return self.message.connections()[0]
+        if self.message.connections():
+            return self.message.connections()[0]
 
     @property
     def jnts(self):
@@ -69,12 +73,17 @@ class BaseNode():
     def region(self):
         return self.Region.get()
 
+    def add_network_tag(self):
+        self.add_tags({'Network': self.network.name()})
 
     def add_tags(self, tags):
         try:
             naming_utils.add_tags(self, tags)
         except Exception as ex:
             log.warning('Failed to add tags: {}, {}, {}'.format(self, tags, ex))
+
+    def get_root(self):
+        return joint_utils.get_root(self)
 
 
 class JointNode(pymel.nodetypes.Joint, BaseNode):
@@ -234,6 +243,27 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
     @property
     def ik_snap_loc(self):
         return self.IK_SNAP_LOC.connections()
+
+    @property
+    def all_nodes(self):
+        nodes = []
+
+        for obj in pymel.ls():
+            if obj.hasAttr('Network') and obj.Network.get() == self.name():
+                nodes.append(obj)
+        return nodes
+
+    @property
+    def all_ctrl_nodes(self):
+        """Return all control rig nodes, ignore skinning joints"""
+
+        nodes = []
+
+        for obj in pymel.ls():
+            if obj.hasAttr('Network') and obj.Network.get() == self.name() and obj not in self.jnts:
+                nodes.append(obj)
+        return nodes
+
 
 
 # Classes need to be registered to exist in the scene.

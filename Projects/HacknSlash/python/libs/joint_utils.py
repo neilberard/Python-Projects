@@ -22,6 +22,18 @@ def get_distance(a, b):
 
     return om.MVector(vector_a-vector_b).length()
 
+def get_root(transform):
+
+    for idx in range(1000):
+        try:
+            if not transform.getParent():
+                return transform
+            else:
+                transform = transform.getParent()
+        except:  # Probably not a transform
+            return
+    return
+
 
 def get_pole_position(joint_chain, pole_dist=20):
     """

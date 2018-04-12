@@ -17,18 +17,6 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-def unbuild_limb(net):
-
-    assert isinstance(net, virtual_class_hs.LimbNode)
-    print net, 'NETWORK'
-
-    to_delete = []
-    for obj in pymel.ls():
-        if obj.hasAttr('Network') and obj.Network.get() == net.name() and obj not in net.jnts:
-            to_delete.append(obj)
-
-    pymel.delete(to_delete)
-
 
 def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
 
@@ -70,17 +58,12 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     for idx, jnt in enumerate(jnts):
         try:
             jnts[idx] = virtual_class_hs.attach_class(jnt)
-        except:
-            pass
-        jnts[idx].add_tags(tags={'Network': net.name()})
-
-
-    # Connect Joints to Net
-    try:
-        for idx, jnt in enumerate(jnts):
             jnt.message.connect(net.JOINTS[idx])
-    except Exception as ex:
-        log.warning(ex)
+            jnts[idx].add_network_tag()
+
+        except Exception as ex:
+            log.warning(ex)
+
 
     # IK FK
     fk_jnts, ik_jnts = joint_utils.build_ik_fk_joints(jnts, net)
@@ -88,7 +71,6 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     log.info('Building IK FK:')
 
     # FK CTRLS
-
     fk_ctrls = []
     for fk_jnt, jnt in zip(fk_jnts, jnts):
 
@@ -152,6 +134,7 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
                                              'IK', 'CTRL'])
     ikctrl = build_ctrls.CreateCtrl(name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'}, axis='Y')
     ikctrl.object.setTranslation(net.jnts[2].getTranslation(worldSpace=True), worldSpace=True)
+
     # IK Loc
     ik_loc = pymel.spaceLocator()
     ik_loc.message.connect(net.IK_SNAP_LOC[0])
@@ -162,8 +145,7 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     ikctrl.object.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ik_offset)
     orient_constraint = pymel.orientConstraint(ikctrl.object, ik_offset, maintainOffset=True)
-    print orient_constraint.getOffset(), "OFFSET"
-
+    naming_utils.add_tags(orient_constraint, {'Network': net.name()})
     joint_utils.create_offset_groups(ikctrl.object, net=net)
 
     # POLE Ctrl
@@ -225,6 +207,33 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
         ik_vis_condition.outColorR.connect(ik_ctrl.visibility)
         ik_vis_condition.outColorR.connect(pole.visibility)
         ik_vis_condition.outColorR.connect(annotation.visibility)
+
+    log.info('BUILDING GRP')
+    # LimbGRP
+    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
+    limb_grp = pymel.group(empty=True, name=limb_grp_name)
+    limb_grp = virtual_class_hs.attach_class(limb_grp)
+    naming_utils.add_tags(limb_grp, {'Network': net.name()})
+
+    roots = set()
+    for node in net.all_ctrl_nodes:
+        root = joint_utils.get_root(node)
+
+        if root and root != 'JNT' and root != limb_grp:
+            print root
+            roots.add(root)
+            root.setParent(limb_grp)
+
+    roots.add(limb_grp)
+    print roots
+
+
+
+
+
+def build_ik_stretch(net=None):
+    pass
+
 
 def build_reverse_foot_rig(jnts=None, net=None):
 
@@ -336,7 +345,8 @@ if __name__ == '__main__':
 
         print net
         try:
-            unbuild_limb(net)
+            pymel.delete(net.all_ctrl_nodes)
+
         except Exception as ex:
             log.warning(ex)
             pass
