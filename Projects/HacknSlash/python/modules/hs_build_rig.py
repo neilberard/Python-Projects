@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
+def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
 
     """
     :param jnts:
@@ -51,6 +51,8 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
                                                        'SWITCH',
                                                        'ORIENTCONSTRAINT',
                                                        'POINTCONSTRAINT'])
+
+    assert isinstance(net, virtual_class_hs.LimbNode)
 
     jnts = joint_utils.get_joint_chain(jnts)
 
@@ -110,11 +112,10 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
 
     # Create offsets
     joint_utils.create_offset_groups([x.object for x in fk_ctrls], net)
-    objects = [x.object for x in fk_ctrls]
 
-    # Connect Message attr
-    for idx, obj in enumerate(objects):
-        obj.message.connect(net.FK_CTRL[idx])
+    for idx, fk_ctrl in enumerate(fk_ctrls):
+        fk_ctrl.message.connect(net.FK_CTRL[idx])
+
 
     # IK CTRLS
     ikhandle_name = naming_utils.concatenate([jnts[2].name_info.side,
@@ -169,8 +170,8 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     # Annotation. Line between pole and mid ik_jnts joint
     anno_name = naming_utils.concatenate([jnts[1].name_info.base_name, jnts[1].name_info.joint_name])
     annotation, anno_parent, locator, point_constraint_a, point_constraint_b = general_utils.build_annotation(pole.object, net.IK_JOINTS[1].connections()[0], net=net, name=anno_name)
-    for obj in [annotation, anno_parent, locator, point_constraint_a]:
-        naming_utils.add_tags(obj, tags={'Network': net.name()})
+    for grp in [annotation, anno_parent, locator, point_constraint_a]:
+        naming_utils.add_tags(grp, tags={'Network': net.name()})
     annotation.message.connect(net.ANNO[0])
     anno_parent.message.connect(net.ANNO[1])
 
@@ -209,7 +210,7 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
         ik_vis_condition.outColorR.connect(pole.visibility)
         ik_vis_condition.outColorR.connect(annotation.visibility)
 
-    log.info('BUILDING GRP')
+    log.info('Grouping CTRLS')
     # LimbGRP
     limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
     limb_grp = pymel.group(empty=True, name=limb_grp_name)
@@ -217,16 +218,22 @@ def build_ikfk_limb(jnts=None, net=None, fk_size=1.0, fk_shape='Circle', ik_size
     limb_grp = virtual_class_hs.attach_class(limb_grp, net)
     naming_utils.add_tags(limb_grp, {'Network': net.name()})
 
-    roots = set()
+    # Group
     for node in net.all_ctrl_nodes:
         root = joint_utils.get_root(node)
 
         if root and root != 'JNT' and root != limb_grp:
-            roots.add(root)
             root.setParent(limb_grp)
 
-    roots.add(limb_grp)
-    print roots
+def ik_spline(jnts, net):
+
+
+
+
+    curve = pymel.PyNode('curve1')
+
+    for i in curve.cv.indices():
+        pymel.cluster(curve.cv[i])
 
 
 def build_ik_stretch(net=None):
@@ -299,11 +306,7 @@ def build_reverse_foot_rig(jnts=None, net=None):
     pymel.parent(ankle_roll_grp, ankle_ik_grp)
 
 
-"""TEST CODE"""
-
-if __name__ == '__main__':
-    print 'Running hs_build_rig'
-    #
+def build_humanoid_rig():
     for net in pymel.ls(type=virtual_class_hs.LimbNode):
 
         print net
@@ -367,6 +370,16 @@ if __name__ == '__main__':
                 if leg_network.side == net.side:
                     foot_net = net
             build_reverse_foot_rig(jnts=net.jnts, net=foot_net)
+
+
+
+"""TEST CODE"""
+
+if __name__ == '__main__':
+    print 'Running hs_build_rig'
+    #
+
+
 
 
 

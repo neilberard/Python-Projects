@@ -290,8 +290,48 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         return nodes
 
 
+class SplineIKNode(pymel.nodetypes.Network, BaseNode):
+    """ this is an example of how to create your own subdivisions of existing nodes. """
+
+    @classmethod
+    def list(cls, *args, **kwargs):
+        """ Returns all instances the node in the scene """
+
+        kwargs['type'] = cls.__melnode__
+        return [node for node in pymel.ls(*args, **kwargs) if isinstance(node, cls)]
+
+    @classmethod
+    def _isVirtual(cls, obj, name):
+        """PyMEL code should not be used inside the callback, only API and maya.cmds. """
+        fn = pymel.api.MFnDependencyNode(obj)
+        try:
+            if fn.hasAttribute('_class'):
+                plug = fn.findPlug('_class')
+                if plug.asString() == '_SplineIKNode':
+                    return True
+                return False
+        except:
+            pass
+        return False
+
+    @classmethod
+    def _preCreateVirtual(cls, **kwargs):
+        """This is called before creation. python allowed."""
+        return kwargs
+
+    @classmethod
+    def _postCreateVirtual(cls, newNode):
+        """ This is called before creation, pymel/cmds allowed."""
+        newNode.addAttr('_class', dataType='string')
+        newNode._class.set('_SplineIKNode')
+        newNode.addAttr('JOINTS', attributeType='message', multi=True)
+        newNode.addAttr('IK_HANDLE', attributeType='message', multi=True)
+        newNode.addAttr('IK_CTRL', attributeType='message', multi=True)
+
+
 
 # Classes need to be registered to exist in the scene.
 pymel.factories.registerVirtualClass(JointNode, nameRequired=False)
 pymel.factories.registerVirtualClass(LimbNode, nameRequired=False)
 pymel.factories.registerVirtualClass(TransformNode, nameRequired=False)
+pymel.factories.registerVirtualClass(SplineIKNode, nameRequired=False)
