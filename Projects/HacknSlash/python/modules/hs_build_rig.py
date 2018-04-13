@@ -116,7 +116,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     for idx, fk_ctrl in enumerate(fk_ctrls):
         fk_ctrl.message.connect(net.FK_CTRL[idx])
 
-
     # IK CTRLS
     ikhandle_name = naming_utils.concatenate([jnts[2].name_info.side,
                                               jnts[2].name_info.base_name,
@@ -225,15 +224,36 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
         if root and root != 'JNT' and root != limb_grp:
             root.setParent(limb_grp)
 
-def ik_spline(jnts, net):
+def ik_spline(jnts, net=None):
 
+    if not net:
+        net = virtual_class_hs.SplineIKNode()
 
+    info = naming_utils.ItemInfo(jnts[0])
 
+    new_name = naming_utils.concatenate([info.side,
+                                         info.base_name,
+                                         info.joint_name,
+                                         info.index,
+                                         ])
 
-    curve = pymel.PyNode('curve1')
+    jnts = joint_utils.get_joint_chain(jnts)
+    points = [x.getTranslation(worldSpace=True) for x in jnts]
+    curve = pymel.curve(p=points)
 
     for i in curve.cv.indices():
-        pymel.cluster(curve.cv[i])
+        cluster = pymel.cluster(curve.cv[i])[0]
+        print type(cluster)
+        joint_utils.create_offset_groups(cluster)
+
+    pymel.ikHandle(startJoint=jnts[0], endEffector=jnts[-1], curve=curve,  solver='ikSplineSolver', ccv=False)
+
+    start_Ctrl = build_ctrls.CreateCtrl(jnt=jnts[0], shape='Cube01')
+
+
+
+
+    # pymel.mel.eval('ikHandle -sol ikSplineSolver -ccv false;')
 
 
 def build_ik_stretch(net=None):
@@ -377,7 +397,7 @@ def build_humanoid_rig():
 
 if __name__ == '__main__':
     print 'Running hs_build_rig'
-    #
+    ik_spline(jnts=pymel.ls(type='joint'), net=None)
 
 
 
