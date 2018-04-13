@@ -7,29 +7,43 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def attach_class(node):
+def attach_class(node, net):
+    """
+    Adds a string attribute to a PyNode set to the virtual class identifier. Example node._class = '_TransformNode'
+    :param node: PyNode to add attribute to.
+    :param net: Network to associate the PyNode with IE: 'L_Leg_Net'
+    :return: PyNode as a virtual class
+    """
+    log.info([type(node), node])
 
     if node.hasAttr('_class'):
         node.deleteAttr('_class')
 
+    if node.hasAttr('Network'):
+        node.deleteAttr('Network')
+
+    #Ensuring that node is a vanilla pynode
+    node = pymel.PyNode(node)
+
+    node.addAttr('Network', dataType='string')
+    node.Network.set(net.name())
+
     if isinstance(node, pymel.nodetypes.Joint):
-        node.addAttr('_class', dt='string')
+        node.addAttr('_class', dataType='string')
         node._class.set('_JointNode')
         return pymel.PyNode(node)
 
     if isinstance(node, pymel.nodetypes.Transform):
-        node.addAttr('_class', dt='string')
+        node.addAttr('_class', dataType='string')
         node._class.set('_TransformNode')
         new_node = pymel.PyNode(node)
         assert isinstance(new_node, TransformNode)
         return new_node
 
     if isinstance(node, pymel.nodetypes.Network):
-        node.addAttr('_class', dt='string')
+        node.addAttr('_class', dataType='string')
         node._class.set('_LimbNode')
         return pymel.PyNode(node)
-
-
 
     log.warning('Could not find class for: '.format(node))
 
@@ -85,6 +99,17 @@ class BaseNode():
     def get_root(self):
         return joint_utils.get_root(self)
 
+    @property
+    def all_ctrl_nodes(self):
+        """Return all control rig nodes, ignore skinning joints"""
+
+        nodes = []
+
+        for obj in pymel.ls():
+            if obj.hasAttr('Network') and obj.Network.get() == self.network.name() and obj not in self.jnts:
+                nodes.append(obj)
+        return nodes
+
 
 class JointNode(pymel.nodetypes.Joint, BaseNode):
     """ this is an example of how to create your own subdivisions of existing nodes. """
@@ -122,7 +147,7 @@ class JointNode(pymel.nodetypes.Joint, BaseNode):
         print newNode
         """ This is called before creation, pymel/cmds allowed."""
 
-        pymel.addAttr(newNode, longName='_class', dt='string')
+        pymel.addAttr(newNode, longName='_class', dataType='string')
         newNode._class.set('_JointNode')
 
 
@@ -159,7 +184,7 @@ class TransformNode(pymel.nodetypes.Transform, BaseNode):
     def _postCreateVirtual(cls, newNode):
         print newNode
         """ This is called before creation, pymel/cmds allowed."""
-        newNode.addAttr('_class', dt='string')
+        newNode.addAttr('_class', dataType='string')
         newNode._class.set('_TransformNode')
 
 
@@ -195,20 +220,20 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
     @classmethod
     def _postCreateVirtual(cls, newNode):
         """ This is called before creation, pymel/cmds allowed."""
-        newNode.addAttr('_class', dt='string')
+        newNode.addAttr('_class', dataType='string')
         newNode._class.set('_LimbNode')
-        newNode.addAttr('JOINTS', at='message', multi=True)
-        newNode.addAttr('IK_JOINTS', at='message', multi=True)
-        newNode.addAttr('FK_JOINTS', at='message', multi=True)
-        newNode.addAttr('IK_CTRL', at='message', multi=True)
-        newNode.addAttr('FK_CTRL', at='message', multi=True)
-        newNode.addAttr('POLE', at='message', multi=True)
-        newNode.addAttr('ANNO', at='message', multi=True)
-        newNode.addAttr('SWITCH', at='message', multi=True)
-        newNode.addAttr('ORIENTCONSTRAINT', at='message', multi=True)
-        newNode.addAttr('POINTCONSTRAINT', at='message', multi=True)
-        newNode.addAttr('IK_HANDLE', at='message', multi=True)
-        newNode.addAttr('IK_SNAP_LOC', at='message', multi=True)
+        newNode.addAttr('JOINTS', attributeType='message', multi=True)
+        newNode.addAttr('IK_JOINTS', attributeType='message', multi=True)
+        newNode.addAttr('FK_JOINTS', attributeType='message', multi=True)
+        newNode.addAttr('IK_CTRL', attributeType='message', multi=True)
+        newNode.addAttr('FK_CTRL', attributeType='message', multi=True)
+        newNode.addAttr('POLE', attributeType='message', multi=True)
+        newNode.addAttr('ANNO', attributeType='message', multi=True)
+        newNode.addAttr('SWITCH', attributeType='message', multi=True)
+        newNode.addAttr('ORIENTCONSTRAINT', attributeType='message', multi=True)
+        newNode.addAttr('POINTCONSTRAINT', attributeType='message', multi=True)
+        newNode.addAttr('IK_HANDLE', attributeType='message', multi=True)
+        newNode.addAttr('IK_SNAP_LOC', attributeType='message', multi=True)
 
 
     #Overwritting BaseClass Method

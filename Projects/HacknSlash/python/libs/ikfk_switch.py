@@ -58,15 +58,13 @@ def to_fk(net):
 
 
 def switch_to_ik():
-    selected = pymel.selected()[0]
-    net = selected.message.listConnections()[0]
-    to_ik(net)
+    for sel in pymel.selected():
+        to_ik(sel.network)
 
 
 def switch_to_fk():
-    selected = pymel.selected()[0]
-    net = selected.message.listConnections()[0]
-    to_fk(net)
+    for sel in pymel.selected():
+        to_fk(sel.network)
 
 
 

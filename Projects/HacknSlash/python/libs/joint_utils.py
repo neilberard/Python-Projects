@@ -2,7 +2,6 @@ import pymel.core as pymel
 import maya.OpenMaya as om
 from python.libs import consts
 from python.libs import naming_utils
-from python.modules import virtual_class_hs
 import math
 import logging
 
@@ -278,9 +277,6 @@ def create_offset_groups(objects, net=None, name=None):
 
         new_group = pymel.group(empty=True, name=grp_name)
         new_group.setMatrix(transform_matrix, worldSpace=True)
-
-        # Add Virtual Class
-        virtual_class_hs.attach_class(new_group)
 
         if net:
             naming_utils.add_tags(new_group, tags={'Network': net.name()})
