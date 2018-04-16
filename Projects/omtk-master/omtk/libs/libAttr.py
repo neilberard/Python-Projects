@@ -171,7 +171,7 @@ def hold_attrs(attr):
                     return input
             else:
                 log.warning("Input have been found on attr {0}, but it's locked. "
-                            "The animation curve will be lost and the current value will be used".format(attr))
+                            "The deformers curve will be lost and the current value will be used".format(attr))
         return attr.get()
     return attr
 

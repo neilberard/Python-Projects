@@ -57,7 +57,7 @@ class SampleTests(mayaunittest.TestCase):
     #     """
     #     Check that after a ctrl have been built once, if we change it's hierarchy's and
     #     rebuild it, we will keep the old index.
-    #     This ensure any rig update will never break an old animation.
+    #     This ensure any rig update will never break an old deformers.
     #     """
     #     from omtk.modules import rigFK
     #

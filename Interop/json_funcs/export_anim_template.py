@@ -4,7 +4,7 @@ import json
 def manage_ik_data(ref, ik_data, to_delete, anim_ctrls, baked_only_jnts):
     """
     This function will manage the ik data to ensure that the needed information will be exported in the fbx or
-    in the JSON file generated with the animation fbx. The data include space keys, ik/fk switch keys and will
+    in the JSON file generated with the deformers fbx. The data include space keys, ik/fk switch keys and will
     also check if certain keys would need to be delete before the export.
 
     :param ref: The reference on which we want to manage the data
@@ -72,7 +72,7 @@ def manage_ik_data(ref, ik_data, to_delete, anim_ctrls, baked_only_jnts):
                 ikfk_tangent_ox.insert(0, 1.0)
                 ikfk_tangent_oy.insert(0, 0.0)
 
-            # Always export the ik ctrl even if there is no animation on it
+            # Always export the ik ctrl even if there is no deformers on it
             anim_ctrls.append(ik_ctrl)
             anim_ctrls.append(ik_swivel)
             # If there is not keys, check the value of the ik/fk
@@ -119,7 +119,7 @@ def manage_ik_data(ref, ik_data, to_delete, anim_ctrls, baked_only_jnts):
             ctrl_data = {'ControlName': ik_ctrl.stripNamespace().encode(),
                          'Keys': []}
             for i, (anim_time, value) in enumerate(zip(ikfk_keys_time, ikfk_keys)):
-                # Skip any frame that would not be in the range of the animation
+                # Skip any frame that would not be in the range of the deformers
                 if anim_time < float(start_time) or anim_time > float(end_time):
                     continue
                 # Set the key on the attribute added

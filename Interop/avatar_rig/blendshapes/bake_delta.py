@@ -1,22 +1,22 @@
 import maya.api.OpenMaya as om2
-import pymel.core as pm
+import pymel.core as pymel
 "Copy vertex position from 1st selected item to 2nd selected item"
 
 def create_window():
     
     windowName = "BakeBase"
     
-    if pm.window(windowName, exists=True):
+    if pymel.window(windowName, exists=True):
         print 'Check'
-        pm.deleteUI(windowName)
+        pymel.deleteUI(windowName)
     
-    window = pm.window(windowName, t=windowName,widthHeight=(400, 50))
-    pm.columnLayout( adjustableColumn=True )
+    window = pymel.window(windowName, t=windowName, widthHeight=(400, 50))
+    pymel.columnLayout(adjustableColumn=True)
                  
-    pm.text('Select NEW shape, OLD shape, Target(s)')
-    pm.button( label='Bake Delta', command='run()')
+    pymel.text('Select NEW shape, OLD shape, Target(s)')
+    pymel.button(label='Bake Delta', command='run()')
           
-    pm.showWindow( window )
+    pymel.showWindow(window)
     
 create_window()
 
@@ -43,7 +43,7 @@ def run():
     selection_list = om2.MGlobal.getActiveSelectionList()
     
     if selection_list.length() <3:
-        pm.warning('NEED A MINIMUM OF 3 OBJECTS SELECTED. New shape, old shape, blendshape target(s)')
+        pymel.warning('NEED A MINIMUM OF 3 OBJECTS SELECTED. New shape, old shape, blendshape target(s)')
         return
     else:
         vertex_pos_a = get_vtx_pos(base=selection_list.getDagPath(1))

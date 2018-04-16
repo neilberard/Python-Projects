@@ -11,7 +11,7 @@ class CtrlSquint(rigFaceAvar.BaseCtrlFace):
 
 class FaceSquint(rigFaceAvarGrps.AvarGrpAreaOnSurface):
     """
-    AvarGrp setup customized for squint rigging.
+    AvarGrp setup customized for squint deformers.
     """
     _CLS_CTRL = CtrlSquint
     IS_SIDE_SPECIFIC = False

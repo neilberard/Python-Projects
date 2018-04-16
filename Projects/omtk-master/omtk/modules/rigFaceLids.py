@@ -16,7 +16,7 @@ class CtrlLidLow(rigFaceAvar.BaseCtrlFace):
 
 class FaceLids(rigFaceAvarGrps.AvarGrpAreaOnSurface):
     """
-    AvarGrp setup customized for Eyelids rigging.
+    AvarGrp setup customized for Eyelids deformers.
     FaceLids behave the same a a standard AvarGrp with an Upp and Low section.
     However to adapt ourself to non-symetrical eyes, we use two surface to slide on.
     """

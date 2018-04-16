@@ -33,8 +33,9 @@ def reset(transform, bake_geo=False):
     if bake_geo:
         mfn.setPoints(points)
 
-if __name__ == '__main__':
-    reset(pymel.selected()[0])
+# Example Usage
+# if __name__ == '__main__':
+#     reset(pymel.selected()[0])
 
 
 

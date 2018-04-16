@@ -35,7 +35,7 @@ class BaseCtrl(Node):
         self.sz = None
 
         # Store information concerning how the ctrl should mirror.
-        # For more information see the omtk.animation.mirrorPose module.
+        # For more information see the omtk.deformers.mirrorPose module.
         # The default behavior follow the result we get when mirroring joints using the 'behavior' option.
         # TODO: Find a way to automatically guess the correct values.
         self.mirror_x = False
@@ -103,7 +103,7 @@ class BaseCtrl(Node):
 
     def build(self, name=None, fetch_shapes=True, *args, **kwargs):
         """
-        Create ctrl setup, also fetch animation and shapes if necessary.
+        Create ctrl setup, also fetch deformers and shapes if necessary.
         """
         # TODO: Add support for multiple shapes?
         if self.can_fetch_shapes():
@@ -164,7 +164,7 @@ class BaseCtrl(Node):
 
     def unbuild(self, keep_shapes=True, *args, **kwargs):
         """
-        Delete ctrl setup, but store the animation, shapes and rotate order0.
+        Delete ctrl setup, but store the deformers, shapes and rotate order0.
         """
         if not libPymel.is_valid_PyNode(self.node):
             raise Exception("Can't hold ctrl attribute! Some information may be lost... {0}".format(self.node))

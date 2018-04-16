@@ -24,7 +24,7 @@ def rebuild_targets(obj):
 
 def rebuild_targets_match(obj):
     """
-    Regenerate Blendshape targets with deformer masks applied. If you have masked out a portion of a blendshape
+    Regenerate Blendshape targets with deformers masks applied. If you have masked out a portion of a blendshape
     that mask will now be baked into the generated target.
     :param obj: Node that has blendshapes applied.
     :return: Regenerated targets.

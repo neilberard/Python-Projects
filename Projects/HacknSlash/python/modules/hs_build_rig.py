@@ -1,17 +1,17 @@
 '''HSBuild_RIG'''
 import pymel.core as pymel
-import maya.OpenMaya as om
-from python.libs import lib_network, naming_utils
+
 from python.libs import build_ctrls
-from python.libs import joint_utils
 from python.libs import general_utils
-from python.modules import virtual_class_hs
+from python.libs import joint_utils
+from python.libs import lib_network, naming_utils, virtual_classes
+
 reload(lib_network)
 reload(build_ctrls)
 reload(joint_utils)
 reload(naming_utils)
 reload(general_utils)
-reload(virtual_class_hs)
+reload(virtual_classes)
 
 import logging
 log = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
 
     #NET NODE
     if not net:
-        net = virtual_class_hs.LimbNode()
+        net = virtual_classes.LimbNode()
         naming_utils.add_tags(net, tags={'Region': region, 'Side': side})
         naming_utils.add_message_attr(net, attributes=['JOINTS',
                                                        'IK_JOINTS',
@@ -52,14 +52,14 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
                                                        'ORIENTCONSTRAINT',
                                                        'POINTCONSTRAINT'])
 
-    assert isinstance(net, virtual_class_hs.LimbNode)
+    assert isinstance(net, virtual_classes.LimbNode)
 
     jnts = joint_utils.get_joint_chain(jnts)
 
     # Attach virtual class
     for idx, jnt in enumerate(jnts):
         try:
-            jnts[idx] = virtual_class_hs.attach_class(jnt, net=net)
+            jnts[idx] = virtual_classes.attach_class(jnt, net=net)
             jnt.message.connect(net.JOINTS[idx])
             jnts[idx].add_network_tag()
 
@@ -76,7 +76,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     for fk_jnt, jnt in zip(fk_jnts, jnts):
         print type(jnt)
 
-        assert isinstance(jnt, virtual_class_hs.JointNode)  # For IDE to recognize stored methods
+        assert isinstance(jnt, virtual_classes.JointNode)  # For IDE to recognize stored methods
         ctrl_name = naming_utils.concatenate([net.Side.get(),
                                               jnt.name_info.base_name,
                                               jnt.name_info.joint_name,
@@ -89,7 +89,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
         fk_ctrls.append(ctrl)
 
         # Add Virtual Class
-        virtual_class_hs.attach_class(ctrl.object, net)
+        virtual_classes.attach_class(ctrl.object, net)
 
     # Parent CTRLS
     for a in fk_ctrls:
@@ -134,7 +134,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
                                              'IK', 'CTRL'])
     ikctrl = build_ctrls.CreateCtrl(name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'}, axis='Y')
     ikctrl.object.setTranslation(net.jnts[2].getTranslation(worldSpace=True), worldSpace=True)
-    virtual_class_hs.attach_class(ikctrl.object, net)
+    virtual_classes.attach_class(ikctrl.object, net)
 
     # IK Loc
     ik_loc = pymel.spaceLocator()
@@ -163,7 +163,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     pole.object.message.connect(net.POLE[0])
     joint_utils.create_offset_groups(pole.object, name='Offset', net=net)
 
-    virtual_class_hs.attach_class(pole.object, net)
+    virtual_classes.attach_class(pole.object, net)
     pymel.poleVectorConstraint(pole.object, ikhandle)
 
     # Annotation. Line between pole and mid ik_jnts joint
@@ -180,7 +180,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     switch = build_ctrls.CreateCtrl(jnt=jnts[2], name=switch_name, network=net, tags=switch_tags, shape=ikfk_shape, size=ikfk_size)
     switch.object.message.connect(net.SWITCH[0])
     pymel.parentConstraint(jnts[2], switch.object)
-    virtual_class_hs.attach_class(switch.object, net)
+    virtual_classes.attach_class(switch.object, net)
 
     # plusMinusAverage
     switch_util = general_utils.make_switch_utility(switch.object, tags={'Network': net.name(), 'Type': 'Switch', 'Utility': 'IKFK'})
@@ -214,7 +214,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
     limb_grp = pymel.group(empty=True, name=limb_grp_name)
     limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
-    limb_grp = virtual_class_hs.attach_class(limb_grp, net)
+    limb_grp = virtual_classes.attach_class(limb_grp, net)
     naming_utils.add_tags(limb_grp, {'Network': net.name()})
 
     # Group
@@ -226,25 +226,28 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
 
 def ik_spline(jnts, net=None):
 
+    jnts = joint_utils.get_joint_chain(jnts)
+
     if not net:
-        net = virtual_class_hs.SplineIKNode()
+        net = virtual_classes.SplineIKNet(name='Spline_IK_Net')
 
     info = naming_utils.ItemInfo(jnts[0])
-
     new_name = naming_utils.concatenate([info.side,
                                          info.base_name,
                                          info.joint_name,
                                          info.index,
                                          ])
 
-    jnts = joint_utils.get_joint_chain(jnts)
+    for idx, jnt in enumerate(jnts):
+        jnt.message.connect(net.JOINTS[idx])
+        virtual_classes.attach_class(jnt, net)
+
     points = [x.getTranslation(worldSpace=True) for x in jnts]
     curve = pymel.curve(p=points)
 
     for i in curve.cv.indices():
-        cluster = pymel.cluster(curve.cv[i])[0]
-        print type(cluster)
-        joint_utils.create_offset_groups(cluster)
+        cluster, cluster_handle = pymel.cluster(curve.cv[i])
+        joint_utils.create_offset_groups(cluster_handle)
 
     pymel.ikHandle(startJoint=jnts[0], endEffector=jnts[-1], curve=curve,  solver='ikSplineSolver', ccv=False)
 
@@ -262,7 +265,7 @@ def build_ik_stretch(net=None):
 
 def build_reverse_foot_rig(jnts=None, net=None):
 
-    assert isinstance(net, virtual_class_hs.LimbNode)
+    assert isinstance(net, virtual_classes.LimbNode)
     #Set attrs
     foot_ik_ctrl = net.ik_ctrls[0]
     foot_ik_ctrl.addAttr('Ankle_Roll', at='float', keyable=True)
@@ -296,7 +299,7 @@ def build_reverse_foot_rig(jnts=None, net=None):
         pymel.makeIdentity(grp, apply=True)
         for child in children:
             child.setParent(grp)
-        virtual_class_hs.attach_class(grp, net=net)
+        virtual_classes.attach_class(grp, net=net)
         return grp
 
     # Ball Roll
@@ -327,7 +330,7 @@ def build_reverse_foot_rig(jnts=None, net=None):
 
 
 def build_humanoid_rig():
-    for net in pymel.ls(type=virtual_class_hs.LimbNode):
+    for net in pymel.ls(type=virtual_classes.LimbNode):
 
         print net
         try:
@@ -357,7 +360,7 @@ def build_humanoid_rig():
     # Create Network Nodes
     for key in jnt_dict.keys():
         info = naming_utils.ItemInfo(key)
-        net = virtual_class_hs.LimbNode()
+        net = virtual_classes.LimbNode()
         pymel.rename(net, naming_utils.concatenate([key, 'Net']))
         naming_utils.add_tags(net, tags={'Type': 'IKFK', 'Region': info.region, 'Side': info.side})
 
@@ -366,8 +369,8 @@ def build_humanoid_rig():
             jnt.message.connect(net.JOINTS[idx])
 
     # Build Arms
-    for net in pymel.ls(type=virtual_class_hs.LimbNode):
-        assert isinstance(net, virtual_class_hs.LimbNode)
+    for net in pymel.ls(type=virtual_classes.LimbNode):
+        assert isinstance(net, virtual_classes.LimbNode)
 
         if net.region == 'Arm':
             build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='Cube01')
@@ -396,6 +399,13 @@ def build_humanoid_rig():
 """TEST CODE"""
 
 if __name__ == '__main__':
+
+    for node in pymel.ls(type=virtual_classes.SplineIKNet):
+
+        assert isinstance(node, virtual_classes.SplineIKNet)
+        pymel.delete(node.all_nodes)
+        pymel.delete(node)
+
     print 'Running hs_build_rig'
     ik_spline(jnts=pymel.ls(type='joint'), net=None)
 

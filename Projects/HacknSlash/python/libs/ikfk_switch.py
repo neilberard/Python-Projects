@@ -1,8 +1,9 @@
 import pymel.core as pymel
-from python.libs import joint_utils
-from python.modules import virtual_class_hs
+
+from python.libs import joint_utils, virtual_classes
+
 reload(joint_utils)
-reload(virtual_class_hs)
+reload(virtual_classes)
 
 
 def to_ik(net):

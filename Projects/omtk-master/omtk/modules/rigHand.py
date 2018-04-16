@@ -47,7 +47,7 @@ class Finger(Module):
 
 class Hand(Module):
     """
-    Multiple FK setup customized for hand rigging. Include metacarpal controls.
+    Multiple FK setup customized for hand deformers. Include metacarpal controls.
     """
     def __init__(self, *args, **kwargs):
         super(Hand, self).__init__(*args, **kwargs)

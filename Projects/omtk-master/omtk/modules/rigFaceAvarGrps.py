@@ -390,7 +390,7 @@ class AvarGrp(rigFaceAvar.AbstractAvar):  # todo: why do we inherit from Abstrac
             print(str(e))
 
     def _parent_avars(self, parent):
-        # If the deformation order is set to post (aka the deformer is in the final skinCluster)
+        # If the deformation order is set to post (aka the deformers is in the final skinCluster)
         # we will want the offset node to follow it's original parent (ex: the head)
         for avar in self.get_all_avars():
             self._parent_avar(avar, parent)

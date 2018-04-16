@@ -1,6 +1,6 @@
 import sys
 import maya.OpenMayaMPx as OpenMayaMPx
-import maya.api.OpenMaya as OpenMaya2  #todo: Might want to rewrite in Maya Api 1.0 for consistancy
+import maya.OpenMaya as OpenMaya
 import pymel.core as pymel
 
 
@@ -10,14 +10,13 @@ def get_vtx_pos(base):
     :return: Vertex positions as Mfn point array.
     """
     try:
-        sel_list = OpenMaya2.MGlobal.getSelectionListByName(str(base))
-        base = sel_list.getDagPath(0)
-        mfn_object = OpenMaya2.MFnMesh(base)
-    except:
-        sys.stderr.write('Cannot get vertex pos for {}'.format(base))
+        mfn = base.getShape().__apimfn__()
+        points = OpenMaya.MPointArray()
+        mfn.getPoints(points)
+    except Exception as ex:
+        sys.stderr.write('Cannot get vertex pos for {}: \n {}'.format(base, ex))
         return
-
-    return mfn_object.getPoints()
+    return points
 
 
 def set_vtx_pos(target, points):
@@ -27,16 +26,15 @@ def set_vtx_pos(target, points):
     :return: None
     """
     try:
-        sel_list = OpenMaya2.MGlobal.getSelectionListByName(str(target))
-        target = sel_list.getDagPath(0)
-        mfn_object = OpenMaya2.MFnMesh(target)
-        mfn_object.setPoints(points)
-    except:
-        sys.stderr.write('Cannot set vertex pos for {}'.format(target))
+        mfn_target = target.getShape().__apimfn__()
+        mfn_target.setPoints(points)
+    except Exception as ex:
+        sys.stderr.write('Cannot set vertex pos for {}: \n {}'.format(target, ex))
+        return
 
 
 # MPX PLUGIN
-kPluginCmdName = 'nb_match_vertex_position'
+kPluginCmdName = 'match_vertex_position'
 
 
 class MyUndoableCommand(OpenMayaMPx.MPxCommand):
@@ -67,10 +65,8 @@ class MyUndoableCommand(OpenMayaMPx.MPxCommand):
         """Set Vertex Positions"""
         set_vtx_pos(target=self.target, points=self.source_vtx_pos)
 
-
     def undoIt(self):
         set_vtx_pos(target=self.target, points=self.target_vtx_pos)
-
 
     def isUndoable(self):
         return True
@@ -91,5 +87,5 @@ def uninitializePlugin(mobject):
     try:
         mplugin.deregisterCommand(kPluginCmdName)
     except:
-        sys.stderr.write( 'failed to deregister command: ' + kPluginCmdName)
+        sys.stderr.write('failed to deregister command: ' + kPluginCmdName)
 

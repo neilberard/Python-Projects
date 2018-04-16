@@ -449,7 +449,7 @@ class FaceLipsAvar(rigFaceAvar.AvarFollicle):
 
 class FaceLips(rigFaceAvarGrps.AvarGrpAreaOnSurface):
     """
-    AvarGrp setup customized for lips rigging.
+    AvarGrp setup customized for lips deformers.
     Lips have the same behavior than an AvarGrpUppLow.
     However the lip curl is also connected between the macro avars and the micro avars.
     """

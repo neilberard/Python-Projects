@@ -45,7 +45,7 @@ class FK(Module):
         Cleaning routine automatically called by libSerialization after a network import.
         """
         # Ensure there's no None value in the .ctrls array.
-        # This can happen if the rigging delete the stored shape before rebuilding.
+        # This can happen if the deformers delete the stored shape before rebuilding.
         try:
             self.ctrls= filter(None, self.ctrls)
         except (AttributeError, TypeError):

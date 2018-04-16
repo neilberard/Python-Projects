@@ -136,7 +136,7 @@ class Module(object):
     @libPython.memoized
     def get_nomenclature_anm(self):
         """
-        :return: The nomenclature to use for animation controllers.
+        :return: The nomenclature to use for deformers controllers.
         """
         name = self.rig.nomenclature(
             name=self.get_module_name(),
@@ -147,7 +147,7 @@ class Module(object):
     @libPython.memoized
     def get_nomenclature_anm_grp(self):
         """
-        :return: The nomenclature to use for group that hold multiple animation controllers. (one per module)
+        :return: The nomenclature to use for group that hold multiple deformers controllers. (one per module)
         """
         name = self.rig.nomenclature(
             name=self.get_module_name(),
@@ -294,7 +294,7 @@ class Module(object):
     def build(self, create_grp_anm=True, create_grp_rig=True, connect_global_scale=True, segmentScaleCompensate=None, parent=True):
         """
         Build the module following the provided rig rules.
-        :param create_grp_anm: If True, a group for all the animation controller will be created.
+        :param create_grp_anm: If True, a group for all the deformers controller will be created.
         :param create_grp_rig: If True, a group for all the rig data will be created/
         :param segmentScaleCompensate: If provided, the segmentScaleCompensation attribute of all the inputs will be modified.
         :param parent: If True, the parent_to method will be automatically called.
@@ -348,7 +348,7 @@ class Module(object):
     def unbuild(self, disconnect_attr=True):
         """
         Call unbuild on each individual ctrls
-        This allow the rig to save his ctrls appearance (shapes) and animation (animCurves).
+        This allow the rig to save his ctrls appearance (shapes) and deformers (animCurves).
         Note that this happen first so the rig can return to it's bind pose before anything else is done.
         :param disconnect_attr: Tell the unbuild if we want to disconnect the input translate, rotate, scale
         """

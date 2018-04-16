@@ -290,7 +290,7 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         return nodes
 
 
-class SplineIKNode(pymel.nodetypes.Network, BaseNode):
+class SplineIKNet(pymel.nodetypes.Network):
     """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod
@@ -307,7 +307,7 @@ class SplineIKNode(pymel.nodetypes.Network, BaseNode):
         try:
             if fn.hasAttribute('_class'):
                 plug = fn.findPlug('_class')
-                if plug.asString() == '_SplineIKNode':
+                if plug.asString() == '_SplineIKNet':
                     return True
                 return False
         except:
@@ -323,10 +323,37 @@ class SplineIKNode(pymel.nodetypes.Network, BaseNode):
     def _postCreateVirtual(cls, newNode):
         """ This is called before creation, pymel/cmds allowed."""
         newNode.addAttr('_class', dataType='string')
-        newNode._class.set('_SplineIKNode')
+        newNode._class.set('_SplineIKNet')
         newNode.addAttr('JOINTS', attributeType='message', multi=True)
         newNode.addAttr('IK_HANDLE', attributeType='message', multi=True)
         newNode.addAttr('IK_CTRL', attributeType='message', multi=True)
+        newNode.addAttr('CLUSTER_HANDLE', attributeType='message', multi=True)
+
+    @property
+    def all_nodes(self):
+        nodes = []
+
+        for obj in pymel.ls():
+            if obj.hasAttr('Network') and obj.Network.get() == self.name():
+                nodes.append(obj)
+        return nodes
+
+    @property
+    def jnts(self):
+        return self.JOINTS.connections()
+
+
+    @property
+    def all_ctrl_nodes(self):
+        """Return all control rig nodes, ignore skinning joints"""
+
+        nodes = []
+
+        for obj in pymel.ls():
+            if obj.hasAttr('Network') and obj.Network.get() == self.name() and obj not in self.jnts:
+                nodes.append(obj)
+        return nodes
+
 
 
 
@@ -334,4 +361,4 @@ class SplineIKNode(pymel.nodetypes.Network, BaseNode):
 pymel.factories.registerVirtualClass(JointNode, nameRequired=False)
 pymel.factories.registerVirtualClass(LimbNode, nameRequired=False)
 pymel.factories.registerVirtualClass(TransformNode, nameRequired=False)
-pymel.factories.registerVirtualClass(SplineIKNode, nameRequired=False)
+pymel.factories.registerVirtualClass(SplineIKNet, nameRequired=False)

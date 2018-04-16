@@ -202,7 +202,7 @@ class AbstractAvar(classModule.Module):
 
     def get_jnt_tm(self):
         """
-        :return: The deformer pivot transformation.
+        :return: The deformers pivot transformation.
         """
         # TODO: What do we do with the rotation?
         tm = self.jnt.getMatrix(worldSpace=True)
@@ -312,7 +312,7 @@ class AbstractAvar(classModule.Module):
 
     def build(self, mult_u=1.0, mult_v=1.0, **kwargs):
         """
-        Any FacePnt is controlled via "avars" (animation variables) in reference to "The Art of Moving Points".
+        Any FacePnt is controlled via "avars" (deformers variables) in reference to "The Art of Moving Points".
         """
         super(AbstractAvar, self).build(**kwargs)
 
@@ -396,7 +396,7 @@ class AbstractAvar(classModule.Module):
 
 class AvarSimple(AbstractAvar):
     """
-    This represent a single deformer influence that is moved in space using avars.
+    This represent a single deformers influence that is moved in space using avars.
     By default it come with a Deformer driven by a doritos setup.
     A doritos setup allow the controller to always be on the surface of the face.
     """
@@ -420,7 +420,7 @@ class AvarSimple(AbstractAvar):
 
     def build_stack(self, stack, mult_u=1.0, mult_v=1.0):
         """
-        The dag stack is a stock of dagnode that act as additive deformer to controler the final position of
+        The dag stack is a stock of dagnode that act as additive deformers to controler the final position of
         the drived joint.
         """
         layer_pos = stack.append_layer('pos')

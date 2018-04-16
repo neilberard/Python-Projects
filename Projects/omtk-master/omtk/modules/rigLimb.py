@@ -228,7 +228,7 @@ class Limb(Module):
         pass
 
     #
-    # Functions called for IK/FK switch (animation tools)
+    # Functions called for IK/FK switch (deformers tools)
     #
 
     def snap_ik_to_fk(self):

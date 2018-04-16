@@ -21,7 +21,7 @@ class CtrlIkLeg(rigIK.CtrlIk):
 
 class LegIk(rigIK.IK):
     """
-    IK/FK setup customized for Leg rigging. Include a FootRoll.
+    IK/FK setup customized for Leg deformers. Include a FootRoll.
     Create an IK chain with an embeded footroll.
     Two modes are supported:
     1) leg_upp, leg_low, leg_foot, leg_toes, leg_tip (classical setup)
