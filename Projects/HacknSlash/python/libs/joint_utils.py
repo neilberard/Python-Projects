@@ -106,21 +106,19 @@ def get_joint_chain(joint_list):
     # Iterate down the chain starting from the root appending each joint's child.
     for i in range(1000):
 
+        has_child = False
+
         if not cur_jnt.getChildren():
             break
 
-        if cur_jnt.getChildren()[0] not in joint_list:
+        for child in cur_jnt.getChildren():
+            if child in joint_list:
+                has_child = True
+                cur_jnt = child
+                chain.append(cur_jnt)
+                continue
+        if not has_child:
             break
-
-        if len(cur_jnt.getChildren()) > 1:
-            log.info("Multiple chains detected for jnt:{}{}".format(cur_jnt, cur_jnt.getChildren()))
-            break
-
-        else:
-            cur_jnt = cur_jnt.getChildren()[0]
-            chain.append(cur_jnt)
-
-    log.info('JNT CHAIN: {}'.format(chain))
 
     return chain
 

@@ -254,22 +254,38 @@ def build_spine(jnts, net=None):
                                          ])
 
     for idx, jnt in enumerate(jnts):
-        # jnt.message.connect(net.JOINTS[idx])
         virtual_classes.attach_class(jnt, net)
 
     points = [x.getTranslation(worldSpace=True) for x in jnts]
-    curve = pymel.curve(p=points)
+    spine_curve = pymel.curve(p=points, degree=1)
+    naming_utils.add_tags(spine_curve, {'Network': net.name()})
 
-    for i in curve.cv.indices():
-        cluster, cluster_handle = pymel.cluster(curve.cv[i])
-        joint_utils.create_offset_groups(cluster_handle)
+    ikhandle, effector = pymel.ikHandle(startJoint=jnts[0],
+                                               endEffector=jnts[-1],
+                                               solver='ikSplineSolver',
+                                               createCurve=False,
+                                               curve=spine_curve,
+                                               rootOnCurve=True,
+                                               parentCurve=False,
+                                               rootTwistMode=False)
 
-    pymel.ikHandle(startJoint=jnts[0], endEffector=jnts[-1], curve=curve,  solver='ikSplineSolver', ccv=False)
+    for i in spine_curve.cv.indices():
+        cluster, cluster_handle = pymel.cluster(spine_curve.cv[i])
+        cluster_handle.message.connect(net.CLUSTER_HANDLE[i])
+        naming_utils.add_tags(cluster_handle, {'Network': net.name()})
+        naming_utils.add_tags(cluster, {'Network': net.name()})
 
-    start_Ctrl = build_ctrls.CreateCtrl(jnt=jnts[0], shape='Cube01')
+        offset = joint_utils.create_offset_groups(cluster_handle)[0]
+        offset.setPivots(cluster_handle.getRotatePivot())
+        naming_utils.add_tags(offset, {'Network': net.name()})
 
 
 
+    naming_utils.add_tags(ikhandle, {'Network': net.name()})
+    ikhandle.message.connect(net.IK_HANDLE[0])
+
+
+    # start_Ctrl = build_ctrls.CreateCtrl(jnt=jnts[0], shape='Cube01')
 
     # pymel.mel.eval('ikHandle -sol ikSplineSolver -ccv false;')
 
@@ -441,25 +457,6 @@ if __name__ == '__main__':
             print net, net.jnts
             build_spine(jnts=net.jnts, net=net)
 
-
-
-
-
-
-
-
-
-
-                # build_humanoid_rig()
-
-    # for node in pymel.ls(type=virtual_classes.SplineIKNet):
-    #
-    #     assert isinstance(node, virtual_classes.SplineIKNet)
-    #     pymel.delete(node.all_nodes)
-    #     pymel.delete(node)
-    #
-    # print 'Running hs_build_rig'
-    # build_spine(jnts=pymel.ls(type='joint'), net=None)
 
 
 

@@ -8,10 +8,6 @@ import os
 import logging
 import pymel.core as pymel
 
-# HS
-from python.modules import hs_clean
-from python.modules import HS_IK
-
 # Libs
 from python.interop.utils import attr_utils
 from python.libs import build_ctrls, joint_utils
@@ -50,7 +46,7 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_rename_clicked(self):
-        from Projects.HacknSlash.python.ui import rename_tools_window
+        from python.HacknSlash.python.ui import rename_tools_window
         rename_tools_window.showUI()
 
     @QtCore.Slot()
@@ -65,7 +61,8 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
 
     @QtCore.Slot()
     def on_btn_delete_controls_clicked(self):
-        hs_clean.cleanup()
+        pass
+        # hs_clean.cleanup()
 
     @QtCore.Slot()
     def on_btn_make_switch_clicked(self):

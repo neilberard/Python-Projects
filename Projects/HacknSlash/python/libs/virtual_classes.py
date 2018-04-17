@@ -342,6 +342,9 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
     def jnts(self):
         return self.JOINTS.connections()
 
+    @property
+    def clusters(self):
+        return self.CLUSTER_HANDLE.connections()
 
     @property
     def all_ctrl_nodes(self):
