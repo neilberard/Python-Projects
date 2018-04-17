@@ -18,6 +18,25 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
+def delete_rig():
+    for net in pymel.ls(type=virtual_classes.LimbNode):
+        try:
+            pymel.delete(net.all_ctrl_nodes)
+
+        except Exception as ex:
+            log.warning(ex)
+            pass
+
+    pymel.delete(pymel.ls(type='network'))
+
+    for jnt in pymel.ls():
+        if jnt.hasAttr('_class'):
+            jnt.deleteAttr('_class')
+
+
+
+
+
 def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
 
     """
@@ -225,12 +244,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
             root.setParent(limb_grp)
 
 
-def ik_spline(jnts, net=None):
-
-    jnts = joint_utils.get_joint_chain(jnts)
-
-    if not net:
-        net = virtual_classes.SplineIKNet(name='Spline_IK_Net')
+def build_spine(jnts, net=None):
 
     info = naming_utils.ItemInfo(jnts[0])
     new_name = naming_utils.concatenate([info.side,
@@ -240,7 +254,7 @@ def ik_spline(jnts, net=None):
                                          ])
 
     for idx, jnt in enumerate(jnts):
-        jnt.message.connect(net.JOINTS[idx])
+        # jnt.message.connect(net.JOINTS[idx])
         virtual_classes.attach_class(jnt, net)
 
     points = [x.getTranslation(worldSpace=True) for x in jnts]
@@ -331,24 +345,9 @@ def build_reverse_foot_rig(jnts=None, net=None):
 
 
 def build_humanoid_rig():
-    for net in pymel.ls(type=virtual_classes.LimbNode):
-
-        print net
-        try:
-            pymel.delete(net.all_ctrl_nodes)
-
-        except Exception as ex:
-            log.warning(ex)
-            pass
-
-    pymel.delete(pymel.ls(type='network'))
+    delete_rig()
 
     jnt_dict = {}
-
-    for jnt in pymel.ls():
-        if jnt.hasAttr('_class'):
-            jnt.deleteAttr('_class')
-
     for jnt in pymel.ls(type='joint'):
         info = naming_utils.ItemInfo(jnt)
         key = naming_utils.concatenate([info.side, info.region])
@@ -401,28 +400,57 @@ def build_humanoid_rig():
 
 if __name__ == '__main__':
 
-    # jnt_dict = {}
+    delete_rig()
+
+    jnt_dict = {}
+
+    for jnt in pymel.ls():
+        if jnt.hasAttr('_class'):
+            jnt.deleteAttr('_class')
+
+    for jnt in pymel.ls(type='joint'):
+        info = naming_utils.ItemInfo(jnt)
+        key = naming_utils.concatenate([info.side, info.region])
+
+        if key in jnt_dict:
+            jnt_dict[key].append(jnt)
+        elif info.region:
+            jnt_dict[key] = [jnt]
+
+    for key in jnt_dict.keys():
+        info = naming_utils.ItemInfo(key)
+        if info.region == 'Spine':
+            net = virtual_classes.SplineIKNet()
+        else:
+            net = virtual_classes.LimbNode()
+        pymel.rename(net, naming_utils.concatenate([key, 'Net']))
+        naming_utils.add_tags(net, tags={'Type': 'IKFK', 'Region': info.region, 'Side': info.side})
+
+        # Connect Joints
+        for idx, jnt in enumerate(joint_utils.get_joint_chain(jnt_dict[key])):
+            print idx, jnt, key
+            try:
+                jnt.message.connect(net.JOINTS[idx])
+            except:
+                pass
     #
-    # for jnt in pymel.ls():
-    #     if jnt.hasAttr('_class'):
-    #         jnt.deleteAttr('_class')
-    #
-    # for jnt in pymel.ls(type='joint'):
-    #     info = naming_utils.ItemInfo(jnt)
-    #     key = naming_utils.concatenate([info.side, info.region])
-    #
-    #     if key in jnt_dict:
-    #         jnt_dict[key].append(jnt)
-    #     elif info.region:
-    #         jnt_dict[key] = [jnt]
-    #
-    # print jnt_dict
-    #
+    # # Build Spine
+    for net in pymel.ls(type='network'):
+
+        if net.region == 'Spine':
+            print net, net.jnts
+            build_spine(jnts=net.jnts, net=net)
 
 
 
 
-    build_humanoid_rig()
+
+
+
+
+
+
+                # build_humanoid_rig()
 
     # for node in pymel.ls(type=virtual_classes.SplineIKNet):
     #
@@ -431,7 +459,7 @@ if __name__ == '__main__':
     #     pymel.delete(node)
     #
     # print 'Running hs_build_rig'
-    # ik_spline(jnts=pymel.ls(type='joint'), net=None)
+    # build_spine(jnts=pymel.ls(type='joint'), net=None)
 
 
 

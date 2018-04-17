@@ -290,7 +290,7 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         return nodes
 
 
-class SplineIKNet(pymel.nodetypes.Network):
+class SplineIKNet(pymel.nodetypes.Network, BaseNode):
     """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod
