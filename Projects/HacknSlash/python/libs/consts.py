@@ -3,7 +3,7 @@ ALL = {}
 
 
 #Base Names
-REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Side', 'Torso']
+REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Side', 'Spine']
 
 ARM = ['Shoulder', 'Elbow', 'Wrist']
 
@@ -15,7 +15,7 @@ LEG = ['Hip', 'Knee', 'Ankle', 'Ball', 'Toe']
 
 SIDE = ['L', 'R']
 
-TORSO = ['Pelvis', 'Spine', 'Chest', 'Clavicle']
+SPINE = ['Pelvis', 'Spine', 'Chest']
 
 # KEYS for item Tags.
 TAGS = ['Side', 'Region', 'Type', 'Utility']
@@ -81,7 +81,7 @@ ALL = {'Ankle': 'Ankle',
 
 if __name__ == '__main__':
         import itertools
-        items = list(set(itertools.chain(TORSO, ARM, LEG, HAND, SIDE, TYPE, IK)))
+        items = list(set(itertools.chain(SPINE, ARM, LEG, HAND, SIDE, TYPE, IK)))
         items.sort()
 
         for i in items:

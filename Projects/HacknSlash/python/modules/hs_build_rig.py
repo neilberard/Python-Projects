@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
+def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
 
     """
     :param jnts:
@@ -143,7 +143,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     pymel.pointConstraint([net.jnts[2], ik_loc])
     pymel.orientConstraint([net.jnts[2], ik_loc], maintainOffset=True)
 
-    ikctrl.object.message.connect(net.IK_CTRL[0])
+    ikctrl.message.connect(net.IK_CTRL[0])
     pymel.pointConstraint(ikctrl.object, ik_offset)
     orient_constraint = pymel.orientConstraint(ikctrl.object, ik_offset, maintainOffset=True)
     naming_utils.add_tags(orient_constraint, {'Network': net.name()})
@@ -160,7 +160,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     pole = build_ctrls.CreateCtrl(name=pole_name, jnt=ik_jnts[2], network=net, shape=pole_shape, size=pole_size, tags=pole_tags)
     pole.object.setTranslation(pos, space='world')
     pole.object.setRotation(rot)
-    pole.object.message.connect(net.POLE[0])
+    pole.message.connect(net.POLE[0])
     joint_utils.create_offset_groups(pole.object, name='Offset', net=net)
 
     virtual_classes.attach_class(pole.object, net)
@@ -178,7 +178,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
     switch_name = naming_utils.concatenate([jnts[2].name_info.base_name, jnts[2].name_info.joint_name, 'IKFK', 'CTRL'])
     switch_tags = {'Network': net.name(), 'Type': 'Switch', 'Utility': 'IKFK'}
     switch = build_ctrls.CreateCtrl(jnt=jnts[2], name=switch_name, network=net, tags=switch_tags, shape=ikfk_shape, size=ikfk_size)
-    switch.object.message.connect(net.SWITCH[0])
+    switch.message.connect(net.SWITCH[0])
     pymel.parentConstraint(jnts[2], switch.object)
     virtual_classes.attach_class(switch.object, net)
 
@@ -223,6 +223,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=1.0, fk_shape='Circle', ik_size=1.0,
 
         if root and root != 'JNT' and root != limb_grp:
             root.setParent(limb_grp)
+
 
 def ik_spline(jnts, net=None):
 
@@ -400,14 +401,37 @@ def build_humanoid_rig():
 
 if __name__ == '__main__':
 
-    for node in pymel.ls(type=virtual_classes.SplineIKNet):
+    # jnt_dict = {}
+    #
+    # for jnt in pymel.ls():
+    #     if jnt.hasAttr('_class'):
+    #         jnt.deleteAttr('_class')
+    #
+    # for jnt in pymel.ls(type='joint'):
+    #     info = naming_utils.ItemInfo(jnt)
+    #     key = naming_utils.concatenate([info.side, info.region])
+    #
+    #     if key in jnt_dict:
+    #         jnt_dict[key].append(jnt)
+    #     elif info.region:
+    #         jnt_dict[key] = [jnt]
+    #
+    # print jnt_dict
+    #
 
-        assert isinstance(node, virtual_classes.SplineIKNet)
-        pymel.delete(node.all_nodes)
-        pymel.delete(node)
 
-    print 'Running hs_build_rig'
-    ik_spline(jnts=pymel.ls(type='joint'), net=None)
+
+
+    build_humanoid_rig()
+
+    # for node in pymel.ls(type=virtual_classes.SplineIKNet):
+    #
+    #     assert isinstance(node, virtual_classes.SplineIKNet)
+    #     pymel.delete(node.all_nodes)
+    #     pymel.delete(node)
+    #
+    # print 'Running hs_build_rig'
+    # ik_spline(jnts=pymel.ls(type='joint'), net=None)
 
 
 

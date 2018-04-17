@@ -59,6 +59,9 @@ class CreateCtrl(object):
             self.make_object()
 
 
+    @property
+    def message(self):
+        return self.object.message
 
     def make_object(self):
         if not self.shape:

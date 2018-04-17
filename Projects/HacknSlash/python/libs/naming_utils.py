@@ -30,9 +30,9 @@ class ItemInfo(object):
             elif name in consts.LEG:
                 self.joint_name = name
                 self.region = consts.ALL['Leg']
-            elif name in consts.TORSO:
+            elif name in consts.SPINE:
                 self.joint_name = name
-                self.region = consts.ALL['Torso']
+                self.region = consts.ALL['Spine']
             elif name in consts.HAND:
                 self.joint_name = name
                 self.region = consts.ALL['Hand']
