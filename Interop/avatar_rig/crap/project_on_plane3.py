@@ -1,26 +1,30 @@
 import pymel.core as pm
-import maya.api.OpenMaya as om2
+import maya.OpenMaya as OpenMaya
 import pymel.core.runtime as pmr
 start_time = cmds.timerX()
 
 #pmr.ConvertSelectionToVertexPerimeter()
 
-sel = om2.MGlobal.getActiveSelectionList()
+sel = OpenMaya.MSelectionList()
+OpenMaya.MGlobal.getActiveSelectionList(sel)
+
+
+
 path, comp = sel.getComponent(0)
-iter = om2.MItMeshVertex(path,comp)
-mesh = om2.MFnMesh(path)
+iter = OpenMaya.MItMeshVertex(path, comp)
+mesh = OpenMaya.MFnMesh(path)
 
 pointPosArray = mesh.getPoints()
 normalArray = mesh.getNormals()
-vertexArray = mesh.getPoints(om2.MSpace.kWorld)
+vertexArray = mesh.getPoints(OpenMaya.MSpace.kWorld)
 
 
 """Get selection average normal and position"""
 
 def get_average_vector():
     
-    averageNormal = om2.MVector(0,0,0)
-    averagePosition = om2.MVector(0,0,0)
+    averageNormal = OpenMaya.MVector(0, 0, 0)
+    averagePosition = OpenMaya.MVector(0, 0, 0)
     norm = []
     pos = []
 
@@ -50,14 +54,13 @@ def project_vertex():
         "Projection Vectors"
         cross = norm + pos
         ''' u is the vertex vector, u is the projection plane normal'''
-        v = om2.MVector(vertexPos) - pos
+        v = OpenMaya.MVector(vertexPos) - pos
         u = norm
         
         dotProduct = u * v
 
         magnitude_squared = u * u
-        
-        
+
         projection_scalar = dotProduct/magnitude_squared
         projection = u * projection_scalar
         
