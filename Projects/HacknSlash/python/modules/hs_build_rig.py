@@ -19,9 +19,9 @@ log.setLevel(logging.DEBUG)
 
 
 def delete_rig():
-    for net in pymel.ls(type=virtual_classes.LimbNode):
+    for net in pymel.ls(type='network'):
         try:
-            pymel.delete(net.all_ctrl_nodes)
+            pymel.delete(net.getCtrlRig())
 
         except Exception as ex:
             log.warning(ex)
@@ -32,9 +32,6 @@ def delete_rig():
     for jnt in pymel.ls():
         if jnt.hasAttr('_class'):
             jnt.deleteAttr('_class')
-
-
-
 
 
 def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0, ik_shape='Cube01', pole_size=1.0, pole_shape='Cube01', ikfk_size=1.0, ikfk_shape='IKFK', region='', side=''):
@@ -238,13 +235,14 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
 
     # Group
     for node in net.all_ctrl_nodes:
-        root = joint_utils.get_root(node)
+        root = joint_utils.getRoot(node)
 
         if root and root != 'JNT' and root != limb_grp:
             root.setParent(limb_grp)
 
 
 def build_spine(jnts, net=None):
+    assert isinstance(net, virtual_classes.SplineIKNet)
 
     info = naming_utils.ItemInfo(jnts[0])
     new_name = naming_utils.concatenate([info.side,
@@ -261,31 +259,50 @@ def build_spine(jnts, net=None):
     naming_utils.add_tags(spine_curve, {'Network': net.name()})
 
     ikhandle, effector = pymel.ikHandle(startJoint=jnts[0],
-                                               endEffector=jnts[-1],
-                                               solver='ikSplineSolver',
-                                               createCurve=False,
-                                               curve=spine_curve,
-                                               rootOnCurve=True,
-                                               parentCurve=False,
-                                               rootTwistMode=False)
+                                        endEffector=jnts[-1],
+                                        solver='ikSplineSolver',
+                                        createCurve=False,
+                                        curve=spine_curve,
+                                        rootOnCurve=True,
+                                        parentCurve=False,
+                                        rootTwistMode=False)
+    naming_utils.add_tags(ikhandle, {'Network': net.name()})
+    naming_utils.add_tags(effector, {'Network': net.name()})
 
     for i in spine_curve.cv.indices():
         cluster, cluster_handle = pymel.cluster(spine_curve.cv[i])
         cluster_handle.message.connect(net.CLUSTER_HANDLE[i])
+        virtual_classes.attach_class(cluster_handle, net=net)
         naming_utils.add_tags(cluster_handle, {'Network': net.name()})
         naming_utils.add_tags(cluster, {'Network': net.name()})
-
         offset = joint_utils.create_offset_groups(cluster_handle)[0]
         offset.setPivots(cluster_handle.getRotatePivot())
         naming_utils.add_tags(offset, {'Network': net.name()})
 
-
-
     naming_utils.add_tags(ikhandle, {'Network': net.name()})
     ikhandle.message.connect(net.IK_HANDLE[0])
 
+    # Pelvis CTRL
+    pelvis_ctrl = build_ctrls.CreateCtrl(jnt=jnts[1], shape='Cube01', network=net)
+    pelvis_ctrl.message.connect(net.IK_CTRL[0])
+    net.clusters[0].getRoot().setParent(pelvis_ctrl.object)
+    net.clusters[1].getRoot().setParent(pelvis_ctrl.object)
 
-    # start_Ctrl = build_ctrls.CreateCtrl(jnt=jnts[0], shape='Cube01')
+    # Mid CTRL
+    mid_ctrl = build_ctrls.CreateCtrl(jnt=jnts[2], shape='Circle', network=net)
+    mid_ctrl.message.connect(net.IK_CTRL[1])
+    net.clusters[2].getRoot().setParent(mid_ctrl.object)
+
+    # Chest CTRL
+    chest_ctrl = build_ctrls.CreateCtrl(jnt=jnts[3], shape='Cube01', network=net)
+    chest_ctrl.message.connect(net.IK_CTRL[2])
+    net.clusters[3].getRoot().setParent(chest_ctrl.object)
+    net.clusters[4].getRoot().setParent(chest_ctrl.object)
+
+
+
+
+    pymel.parentConstraint([mid_ctrl.object, chest_ctrl.object], skipRotate=('x', 'y', 'z'), maintainOffset=True)
 
     # pymel.mel.eval('ikHandle -sol ikSplineSolver -ccv false;')
 

@@ -58,6 +58,9 @@ class CreateCtrl(object):
         else:
             self.make_object()
 
+        if self.object and self.network:
+            naming_utils.add_tags(self.object, {'Network': self.network.name()})
+
 
     @property
     def message(self):
@@ -127,6 +130,7 @@ class ControlBuilder(object):
         self.network = network
         self.parent_constraint = True
         self.ctrls = {}
+
 
     def set_ctrl_list(self):
         self.ctrls = {}

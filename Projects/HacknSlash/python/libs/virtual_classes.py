@@ -76,16 +76,16 @@ class BaseNode():
         return naming_utils.ItemInfo(self)
 
     @property
-    def get_class(self):
+    def _class(self):
         return self._class.get()
 
     @property
     def side(self):
-        return self.Side.get()
+        return self.network.Side.get()
 
     @property
     def region(self):
-        return self.Region.get()
+        return self.network.Region.get()
 
     def add_network_tag(self):
         self.add_tags({'Network': self.network.name()})
@@ -96,11 +96,10 @@ class BaseNode():
         except Exception as ex:
             log.warning('Failed to add tags: {}, {}, {}'.format(self, tags, ex))
 
-    def get_root(self):
+    def getRoot(self):
         return joint_utils.get_root(self)
 
-    @property
-    def all_ctrl_nodes(self):
+    def getCtrlRig(self):
         """Return all control rig nodes, ignore skinning joints"""
 
         nodes = []
@@ -151,7 +150,7 @@ class JointNode(pymel.nodetypes.Joint, BaseNode):
         newNode._class.set('_JointNode')
 
 
-class TransformNode(pymel.nodetypes.Transform, BaseNode):
+class TransformNode(BaseNode, pymel.nodetypes.Transform):
     """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod
@@ -278,8 +277,7 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
                 nodes.append(obj)
         return nodes
 
-    @property
-    def all_ctrl_nodes(self):
+    def getCtrlRig(self):
         """Return all control rig nodes, ignore skinning joints"""
 
         nodes = []
@@ -330,24 +328,14 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('CLUSTER_HANDLE', attributeType='message', multi=True)
 
     @property
-    def all_nodes(self):
-        nodes = []
-
-        for obj in pymel.ls():
-            if obj.hasAttr('Network') and obj.Network.get() == self.name():
-                nodes.append(obj)
-        return nodes
-
-    @property
-    def jnts(self):
-        return self.JOINTS.connections()
+    def network(self):
+        return self
 
     @property
     def clusters(self):
         return self.CLUSTER_HANDLE.connections()
 
-    @property
-    def all_ctrl_nodes(self):
+    def getCtrlRig(self):
         """Return all control rig nodes, ignore skinning joints"""
 
         nodes = []
