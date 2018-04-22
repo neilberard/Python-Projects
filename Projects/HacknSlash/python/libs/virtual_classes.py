@@ -72,6 +72,18 @@ class BaseNode():
         return self.network.IK_JOINTS.connections()
 
     @property
+    def ik_ctrls(self):
+        return self.network.IK_CTRLS.connections()
+
+    @property
+    def fk_ctrls(self):
+        return self.network.FK_CTRLS.connections()
+
+    @property
+    def ik_handles(self):
+        return self.network.IK_HANDLE.connections()
+
+    @property
     def name_info(self):
         return naming_utils.ItemInfo(self)
 
@@ -224,8 +236,8 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('JOINTS', attributeType='message', multi=True)
         newNode.addAttr('IK_JOINTS', attributeType='message', multi=True)
         newNode.addAttr('FK_JOINTS', attributeType='message', multi=True)
-        newNode.addAttr('IK_CTRL', attributeType='message', multi=True)
-        newNode.addAttr('FK_CTRL', attributeType='message', multi=True)
+        newNode.addAttr('IK_CTRLS', attributeType='message', multi=True)
+        newNode.addAttr('FK_CTRLS', attributeType='message', multi=True)
         newNode.addAttr('POLE', attributeType='message', multi=True)
         newNode.addAttr('ANNO', attributeType='message', multi=True)
         newNode.addAttr('SWITCH', attributeType='message', multi=True)
@@ -239,53 +251,6 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
     @property
     def network(self):
         return self
-
-    @property
-    def ik_jnts(self):
-        return self.IK_JOINTS.connections()
-
-    @property
-    def fk_jnts(self):
-        return self.FK_JOINTS.connections()
-
-    @property
-    def ik_handles(self):
-        return self.IK_HANDLE.connections()
-
-    @property
-    def fk_ctrls(self):
-        return self.FK_CTRL.connections()
-
-    @property
-    def ik_ctrls(self):
-        return self.IK_CTRL.connections()
-
-    @property
-    def jnts(self):
-        return self.JOINTS.connections()
-
-    @property
-    def ik_snap_loc(self):
-        return self.IK_SNAP_LOC.connections()
-
-    @property
-    def all_nodes(self):
-        nodes = []
-
-        for obj in pymel.ls():
-            if obj.hasAttr('Network') and obj.Network.get() == self.name():
-                nodes.append(obj)
-        return nodes
-
-    def getCtrlRig(self):
-        """Return all control rig nodes, ignore skinning joints"""
-
-        nodes = []
-
-        for obj in pymel.ls():
-            if obj.hasAttr('Network') and obj.Network.get() == self.name() and obj not in self.jnts:
-                nodes.append(obj)
-        return nodes
 
 
 class SplineIKNet(pymel.nodetypes.Network, BaseNode):
@@ -324,7 +289,7 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
         newNode._class.set('_SplineIKNet')
         newNode.addAttr('JOINTS', attributeType='message', multi=True)
         newNode.addAttr('IK_HANDLE', attributeType='message', multi=True)
-        newNode.addAttr('IK_CTRL', attributeType='message', multi=True)
+        newNode.addAttr('IK_CTRLS', attributeType='message', multi=True)
         newNode.addAttr('CLUSTER_HANDLE', attributeType='message', multi=True)
 
     @property
@@ -334,17 +299,6 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
     @property
     def clusters(self):
         return self.CLUSTER_HANDLE.connections()
-
-    def getCtrlRig(self):
-        """Return all control rig nodes, ignore skinning joints"""
-
-        nodes = []
-
-        for obj in pymel.ls():
-            if obj.hasAttr('Network') and obj.Network.get() == self.name() and obj not in self.jnts:
-                nodes.append(obj)
-        return nodes
-
 
 
 
