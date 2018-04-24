@@ -6,7 +6,7 @@ import pymel.core as pymel
 
 def get_vtx_pos(base):
     """
-    :param base: Source object. Can be a String, Pymel Transform Node or Maya API 2.0 dag path
+    :param base: PyNode
     :return: Vertex positions as Mfn point array.
     """
     try:
