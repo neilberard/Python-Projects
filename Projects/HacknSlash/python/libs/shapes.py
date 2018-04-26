@@ -25,7 +25,7 @@ def maintain_selection(func):
     return wrapper
 
 @maintain_selection
-def make_shape(shape_type, name, axis):
+def make_shape(shape_type='Circle', name='Placeholder', transform=None):
     """
     Read maya ascii file and split it up by the contained mel commands.
     For every command that sets the attribute of a nurbs curve- Create a nurbs curve and set it's
@@ -34,6 +34,7 @@ def make_shape(shape_type, name, axis):
 
     :param shape_type: Shape that we want to make. IE: Circle.
     :param name: Name of the new shape.
+    :param transform: Transform PyNode to attach shape too.
     :return: transform node of the shape.
     """
 
@@ -41,7 +42,11 @@ def make_shape(shape_type, name, axis):
         if shape_type + '.ma' == shape:
             shape_file = os.path.join(shapes_dir, shape)
 
-            transform_node = pymel.createNode('transform', name=name)
+            if transform:
+                transform_node = transform
+
+            else:
+                transform_node = pymel.createNode('transform', name=name)
             with open(shape_file, 'r') as s:
                 mel_data = s.read().split(';')
                 for mel_command in mel_data:
@@ -50,7 +55,7 @@ def make_shape(shape_type, name, axis):
                         pymel.mel.eval('setAttr -k off ".v";')
                         pymel.mel.eval(mel_command + ';')
 
-            set_transform(transform_node, axis)
+            # set_transform(transform_node, axis)
 
             return transform_node
     return None

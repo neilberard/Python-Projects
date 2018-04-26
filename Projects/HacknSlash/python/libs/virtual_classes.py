@@ -1,6 +1,7 @@
 import pymel.all as pymel
 from python.libs import naming_utils
 from python.libs import joint_utils
+from python.libs import shapes
 import logging
 
 log = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def attach_class(node, net):
     log.warning('Could not find class for: '.format(node))
 
 
+
 class BaseNode():
     """
     Subclass must also inherit leaf class with pymel.nodetype.dagnode as it's hierarchy. IE: pymel.nodetypes.Joint
@@ -64,24 +66,48 @@ class BaseNode():
         return self.network.JOINTS.connections()
 
     @property
+    def jntsAttr(self):
+        return self.network.JOINTS
+
+    @property
     def fk_jnts(self):
         return self.network.FK_JOINTS.connections()
+
+    @property
+    def fkJntsAttr(self):
+        return self.network.FK_JOINTS
 
     @property
     def ik_jnts(self):
         return self.network.IK_JOINTS.connections()
 
     @property
+    def ikJntsAttr(self):
+        return self.network.IK_JOINTS
+
+    @property
     def ik_ctrls(self):
         return self.network.IK_CTRLS.connections()
+
+    @property
+    def ikCtrlsAttr(self):
+        return self.network.IK_CTRLS
 
     @property
     def fk_ctrls(self):
         return self.network.FK_CTRLS.connections()
 
     @property
+    def fkCtrlsAttr(self):
+        return self.network.FK_CTRLS
+
+    @property
     def ik_handles(self):
         return self.network.IK_HANDLE.connections()
+
+    @property
+    def ikHandlesAttr(self):
+        return self.network.IK_HANDLE
 
     @property
     def name_info(self):
@@ -300,10 +326,73 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
     def clusters(self):
         return self.CLUSTER_HANDLE.connections()
 
+    @property
+    def clustersAttr(self):
+        return self.CLUSTER_HANDLE
+
+
+class CtrlNode(pymel.nodetypes.Transform, BaseNode):
+
+    @classmethod
+    def list(cls, *args, **kwargs):
+        """ Returns all instances the node in the scene """
+
+        kwargs['type'] = cls.__melnode__
+        return [node for node in pymel.ls(*args, **kwargs) if isinstance(node, cls)]
+
+    @classmethod
+    def _isVirtual(cls, obj, name):
+        """PyMEL code should not be used inside the callback, only API and maya.cmds. """
+        fn = pymel.api.MFnDependencyNode(obj)
+        try:
+            if fn.hasAttribute('_class'):
+                plug = fn.findPlug('_class')
+                if plug.asString() == '_CtrlNode':
+                    return True
+                return False
+        except:
+            pass
+        return False
+
+    @classmethod
+    def _preCreateVirtual(cls, **kwargs):
+        """This is called before creation. python allowed."""
+        return kwargs
+
+    @classmethod
+    def _postCreateVirtual(cls, newNode):
+        """ This is called before creation, pymel/cmds allowed."""
+        newNode.addAttr('_class', dataType='string')
+        newNode._class.set('_CtrlNode')
+        newNode.addAttr('SHAPE', attributeType='message', multi=True)
+
+    def freeze_transform(self):
+        pymel.makeIdentity(self, a=True, t=1, r=1, s=1, n=0, pn=1)
+
+    def set_shape(self, shape):
+        pymel.delete(self.getShape())
+        shapes.make_shape(shape_type=shape, transform=self)
+
+    def set_axis(self, axis):
+        if axis == 'x':
+            self.setRotation((90, 0, 0))
+
+        if axis == 'y':
+            self.setRotation((0, 0, 0))
+
+        if axis == 'z':
+            self.setRotation((0, 0, 90))
+
+    def create_offset(self):
+        grp = pymel.group(empty=True)
+        self.setParent(grp)
+        return grp
+
 
 
 # Classes need to be registered to exist in the scene.
 pymel.factories.registerVirtualClass(JointNode, nameRequired=False)
 pymel.factories.registerVirtualClass(LimbNode, nameRequired=False)
+pymel.factories.registerVirtualClass(CtrlNode, nameRequired=False)
 pymel.factories.registerVirtualClass(TransformNode, nameRequired=False)
 pymel.factories.registerVirtualClass(SplineIKNet, nameRequired=False)

@@ -5,6 +5,7 @@ from python.libs import consts, naming_utils
 from python.libs import shapes
 from python.libs import joint_utils
 from python.libs import lib_network
+from python.libs import virtual_classes
 reload(shapes)
 reload(naming_utils)
 reload(consts)
@@ -13,6 +14,34 @@ reload(lib_network)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+
+def create_ctrl(jnt=None,
+                network=None,
+                tags=None,
+                axis='z',
+                shape='Circle',
+                size=1.0,
+                name='ctrl'):
+
+    ctrl = virtual_classes.CtrlNode()
+    pymel.rename(ctrl, name)
+    ctrl.set_shape(shape)
+    ctrl.set_axis(axis)
+    ctrl.freeze_transform()
+
+    naming_utils.add_tags(ctrl, {'Network': network})
+    naming_utils.add_tags(ctrl, tags)
+
+    if jnt:
+        ctrl.setMatrix(jnt.getMatrix(worldSpace=True), worldSpace=True)
+
+    ctrl.setScale((size, size, size))
+    pymel.makeIdentity(apply=True, scale=True)
+
+    return ctrl
+
+
 
 
 class CreateCtrl(object):
@@ -129,130 +158,58 @@ class ControlBuilder(object):
         self.joints = joints
         self.network = network
         self.parent_constraint = True
-        self.ctrls = {}
-
+        self.ctrls = []
+        self.offsets = []
+        self.set_ctrl_list()
 
     def set_ctrl_list(self):
-        self.ctrls = {}
+        self.ctrls = []
 
         # If nothing is selected, will return a single instance.
         if not self.joints:
-            self.ctrls['base'] = CreateCtrl()
+            self.ctrls.append(virtual_classes.CtrlNode())
         else:
             for jnt in self.joints:
-                self.ctrls[jnt.name()] = CreateCtrl()
+                ctrl = virtual_classes.CtrlNode()
+                grp = ctrl.create_offset()
+                grp.setMatrix(jnt.getMatrix(worldSpace=True), worldSpace=True)
+                self.ctrls.append(ctrl)
+                self.offsets.append(grp)
+
+    def set_ctrl_types(self, shape):
+        for ctrl in self.ctrls:
+            ctrl.set_shape(shape)
 
     def set_ctrl_sizes(self, size=10):
-        for x in self.ctrls.values():
-            print x.get_ctrl_distance()
-
-        # for ctrl_instance in self.ctrls:
-        #     try:
-        #         self.ctrls[ctrl_instance].size = self._joint_info[ctrl_instance]['distance_sum'] * (size / 100.00)
-        #     except:
-        #         self.ctrls[ctrl_instance].size = (size / 10.00)
+        for ctrl in self.ctrls:
+            ctrl.setScale((size, size, size))
 
     def set_ctrl_axis(self, axis):
-        for ctrl_instance in self.ctrls:
-            self.ctrls[ctrl_instance].axis = axis
+        for ctrl in self.ctrls:
+            ctrl.set_axis(axis)
+
+    def set_ctrl_matrices(self):
+        for idx, jnt in enumerate(self.joints):
+            pass
 
     def set_ctrl_names(self):
         for ctrl_instance in self.ctrls:
             info = naming_utils.ItemInfo(ctrl_instance)  # Grabbing the object base and or jnt name.
             log.info(info.base_name)
-            self.ctrls[ctrl_instance].name = naming_utils.concatenate([info.side,
-                                                                       info.base_name,
-                                                                       info.joint_name,
-                                                                       info.index,
-                                                                       consts.ALL['CTRL']])
-
-    def publish_ctls(self):
-        """
-        If joints or objects are listed, this will parent constrain them to the corresponding controllers.
-        The self._ctrls dict is flushed to release the controllers from the tool.
-        """
-
-        # Parent controllers
-        for ctrl_instance in self.ctrls:
-            self.ctrls[ctrl_instance].freeze_transforms()
-            if self._joint_info:  # If no joints are listed, skip.
-                # Find the parent controller by name and parent the control to it.
-                if self.parent_constraint:
-                    pymel.parentConstraint(self.ctrls[ctrl_instance].object, self._joint_info[ctrl_instance]['jnt'])
-
-                if self._joint_info[ctrl_instance]['jnt_parent']:
-
-                    try:
-                        info = naming_utils.ItemInfo(self._joint_info[ctrl_instance]['jnt_parent'])
-                        ctrl_parent = naming_utils.concatenate([info.side,
-                                                                info.base_name,
-                                                                info.joint_name,
-                                                                info.index,
-                                                                consts.ALL['CTRL']])
-
-
-
-                        # todo: write a parent setter in the base class.
-                        pymel.parent(self.ctrls[ctrl_instance].object, ctrl_parent)
-
-                    except Exception as ex:
-                        # log.error(ex)
-                        pass
-
-                # find the children controllers and parent them to the control.
-                for child in self._joint_info[ctrl_instance]['jnt_children']:
-                    try:
-                        info = naming_utils.ItemInfo(child)
-                        ctrl_child = naming_utils.concatenate([info.side,
-                                                               info.base_name,
-                                                               info.joint_name,
-                                                               info.index,
-                                                               consts.ALL['CTRL']])
-                    except:
-                        pass  # todo: Add support for non joint objects
-
-                    try:
-                        # todo: write a parent setter in the base class.
-                        pymel.parent(ctrl_child, self.ctrls[ctrl_instance].object)
-
-                    except Exception as ex:
-                        # log.error(ex)
-                        pass
-
-                log.info([self._joint_info[ctrl_instance]['jnt_parent'], ':jnt_parent'])
-
-        # Add Tags
-        try:
-            for ctrl_instance in self.ctrls:
-                naming_utils.add_tags(self.ctrls[ctrl_instance].object,
-                                      {'Region': info.region,
-                                       'Name': info.base_name,
-                                       'Joint': info.joint_name,
-                                       'Index': info.index,
-                                       'Side': info.side,
-                                       'Type': consts.ALL['CTRL'],
-                                       'Utility': consts.ALL['FK']})
-        except:
-            pass
-
-        # Add offsets
-        for ctrl_instance in self.ctrls:
-            joint_utils.create_offset_groups(self.ctrls[ctrl_instance].object)
-
-        # Removing controls
-        for ctrl_instance in self.ctrls:
-            self.ctrls[ctrl_instance] = None  # Release the ctrl from the dict.
+            name = naming_utils.concatenate([info.side,
+                                             info.base_name,
+                                             info.joint_name,
+                                             info.index,
+                                             consts.ALL['CTRL']])
 
     def delete_ctrls(self):
         if not self.ctrls:
             return
 
-        for ctrl_instance in self.ctrls.values():
-            if ctrl_instance:
-                ctrl_instance.delete()  # deleting the shape
-            del ctrl_instance  # deleting the class instance
+        pymel.delete(self.ctrls)
+        pymel.delete(self.offsets)
 
-        self.ctrls = {}  # resetting the dict
+        self.ctrls = []  # resetting the dict
 
 
 """TEST CODE"""

@@ -13,8 +13,8 @@ def to_ik(net):
     if switch.IKFK.get() == 1:
         pole = net.POLE.connections()[0]
 
-        distance = joint_utils.get_distance(net.IK_JOINTS.connections()[0],
-                                            net.IK_JOINTS.connections()[1])
+        distance = joint_utils.get_distance(net.ik_jnts[0],
+                                            net.ik_jnts[1])
 
         pos, rot = joint_utils.get_pole_position(net.IK_JOINTS.connections(), pole_dist=distance * 0.5)
         pole.setTranslation(pos, space='world')
@@ -25,7 +25,7 @@ def to_ik(net):
     # Match FK POS
     ik_snap_target = net.IK_SNAP_LOC.connections()[0].getMatrix(worldSpace=True)
 
-    ik_ctrl = net.IK_CTRL.connections()[0]
+    ik_ctrl = net.ik_ctrls[0]
     ik_ctrl.setMatrix(ik_snap_target, worldSpace=True)
 
     # Set Pole POS
@@ -50,11 +50,11 @@ def to_fk(net):
     if switch.IKFK.get() == 0:
         return
 
-    jnt_matrices = [jnt.getMatrix(worldSpace=True) for jnt in net.JOINTS.connections()]
+    jnt_matrices = [jnt.getMatrix(worldSpace=True) for jnt in net.jnts]
 
     switch.IKFK.set(0)
 
-    for ctrl, matrix in zip(net.FK_CTRL.connections(), jnt_matrices):
+    for ctrl, matrix in zip(net.fk_ctrls, jnt_matrices):
         ctrl.setMatrix(matrix, worldSpace=True)
 
 

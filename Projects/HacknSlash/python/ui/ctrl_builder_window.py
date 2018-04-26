@@ -1,7 +1,8 @@
 # Imports
 from PySide2 import QtCore, QtWidgets
-from python.qt.Qt import loadUiType
-from python.qt.Qt import QtCore, QtWidgets
+from python.qt.qt import loadUiType
+from python.qt.qt\
+import QtCore, QtWidgets
 
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
@@ -46,46 +47,16 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
         self.cb_shape.blockSignals(False)
 
         self.axis = 'x'  # Orientation of the controller
-
-        # Ctrl_builder class
-        self.ctrl_builder = build_ctrls.ControlBuilder(pymel.selected())
-
         self.refresh()
-        self.create_callbacks()
-
-    def create_callbacks(self):
-        """
-        Setup the different maya callbacks that the UI need to be refreshed correctly
-        """
-        self.remove_callbacks()
-        self.callback_events = [
-            OpenMaya.MEventMessage.addEventCallback('SelectionChanged', self.refresh)]
-
-    def remove_callbacks(self):
-        """
-        Remove all callabacks setup by the UI
-        """
-        for callback_id in self.callback_events:
-            OpenMaya.MEventMessage.removeCallback(callback_id)
-        self.callback_events = []
 
     # @QtCore.Slot(): Decorator based on widget name that connects QT signal.
     def refresh(self, *args):
-
-        self.ctrl_builder.delete_ctrls()
-        self.ctrl_builder.joints = pymel.selected()  # Set the joint selection and build the ctrl and joint dicts.
-        self.ctrl_builder.set_ctrl_names()
+        # Ctrl_builder class
+        self.ctrl_builder = build_ctrls.ControlBuilder(pymel.selected())
         self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
         self.ctrl_builder.set_ctrl_matrices()
         self.ctrl_builder.set_ctrl_axis(self.axis)
-        self.ctrl_builder.get_ctrl_network_connection()
-
-        self.remove_callbacks()
-        self.ctrl_builder.create_ctrls()
-        self.create_callbacks()
-        self.ctrl_builder.get_ctrl_distance()
-        self.ctrl_builder.set_ctrl_sizes(self.sldr.value()/5)
-
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value() * .01)
     @QtCore.Slot()
     def on_chk_parent_constraint_stateChanged(self):
         if self.chk_parent_constraint.checkState() == QtCore.Qt.CheckState.Checked:
@@ -96,27 +67,25 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     @QtCore.Slot()
     def on_btn_axis_x_clicked(self):
         self.axis = 'x'
-        self.refresh()
+        self.ctrl_builder.set_ctrl_axis(self.axis) 
 
     @QtCore.Slot()
     def on_btn_axis_y_clicked(self):
         self.axis = 'y'
-        self.refresh()
+        self.ctrl_builder.set_ctrl_axis(self.axis)
 
     @QtCore.Slot()
     def on_btn_axis_z_clicked(self):
         self.axis = 'z'
-        self.refresh()
+        self.ctrl_builder.set_ctrl_axis(self.axis)
 
     @QtCore.Slot()
     def on_sldr_valueChanged(self):
-        self.ctrl_builder.set_ctrl_sizes(self.sldr.value()/5)
+        self.ctrl_builder.set_ctrl_sizes(self.sldr.value() * .01)
 
     @QtCore.Slot()
     def on_cb_shape_currentIndexChanged(self):
-        self.remove_callbacks()
-        self.refresh()
-        self.create_callbacks()
+        self.ctrl_builder.set_ctrl_types(self.cb_shape.currentText())
 
     @QtCore.Slot()
     def on_btn_cancel_clicked(self):
@@ -126,15 +95,13 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     @QtCore.Slot()
     def on_btn_execute_clicked(self):
         log.info('on_btn_execute_clicked')
-        self.remove_callbacks()
-        self.ctrl_builder.publish_ctls()
+        self.ctrl_builder.ctrls = []
         self.close()
 
     @QtCore.Slot()
     def closeEvent(self, *args):
         log.info('closing')
         self.ctrl_builder.delete_ctrls()
-        self.remove_callbacks()
 
 def showUI():
     for widget in QtWidgets.QApplication.allWidgets():
