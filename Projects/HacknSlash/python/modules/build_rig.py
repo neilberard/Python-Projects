@@ -130,7 +130,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     ikctrl = build_ctrls.create_ctrl(name=ik_ctrl_name, network=net, shape=ik_shape, size=ik_size, tags={'Network': net.name(), 'Type': 'CTRL', 'Utility': 'IK'}, axis='Y')
     ikctrl.setTranslation(net.jnts[2].getTranslation(worldSpace=True), worldSpace=True)
     virtual_classes.attach_class(ikctrl, net)
-    pymel.orientConstraint([ikctrl, net.ik_jnts[2]], maintainOffset=True)
+    # pymel.orientConstraint([ikctrl, net.ik_jnts[2]], maintainOffset=True)
 
     # IK Loc
     ik_loc = pymel.spaceLocator()
@@ -217,7 +217,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     for node in net.getCtrlRig():
         root = joint_utils.get_root(node)
 
-        if root and root != limb_grp and root not in net.jnts:
+        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
             print root
             root.setParent(limb_grp)
 
@@ -263,11 +263,11 @@ def build_spine(jnts, net=None):
     naming_utils.add_tags(ikhandle, {'Network': net.name()})
     ikhandle.message.connect(net.IK_HANDLE[0])
 
-    def make_ctrl(jnt, clusters=None, shape='Cube01'):
+    def make_ctrl(jnt, children=None, shape='Cube01'):
         """
 
         :param jnt:
-        :param clusters: list of clusters to parent to ctrl
+        :param children: list of clusters to parent to ctrl
         :param shape:
         :return:
         """
@@ -277,45 +277,53 @@ def build_spine(jnts, net=None):
         ctrl = build_ctrls.create_ctrl(name=name, axis='y', shape=shape, network=net)
         ctrl.setTranslation(jnt.getTranslation(worldSpace=True))
 
-        for cluster in clusters:
+        for cluster in children:
             cluster.getRoot().setParent(ctrl)
         return ctrl
 
     # Pelvis CTRL
-    pelvis_ctrl = make_ctrl(net.jnts[1], clusters=net.clusters[0:2])
+    pelvis_ctrl = make_ctrl(net.jnts[1], children=net.clusters[0:2])
     pelvis_ctrl.message.connect(net.ikCtrlsAttr[0])
 
     # Mid CTRL
-    mid_ctrl = make_ctrl(net.jnts[2], clusters=net.clusters[2:3], shape='Circle')
+    mid_ctrl = make_ctrl(net.jnts[2], children=net.clusters[2:3], shape='Circle')
     mid_ctrl.message.connect(net.ikCtrlsAttr[1])
 
     # Chest CTRL
-    chest_ctrl = make_ctrl(net.jnts[3], clusters=net.clusters[3:5],  shape='Cube01')
+    chest_ctrl = make_ctrl(net.jnts[3], children=net.clusters[3:5], shape='Cube01')
     chest_ctrl.message.connect(net.ikCtrlsAttr[2])
+
+    # COG
+    cog = build_ctrls.create_ctrl(jnt=net.jnts[1], network=net, shape='Circle', size=5)
+    chest_ctrl.message.connect(net.ikCtrlsAttr[3])
+
+    chest_ctrl.setParent(mid_ctrl)
+    mid_ctrl.setParent(cog)
+    pelvis_ctrl.setParent(cog)
+
 
     # Ik Spline Twist
     net.ik_handles[0].dTwistControlEnable.set(1)
     net.ik_handles[0].dWorldUpType.set(4)
     net.ik_handles[0].dForwardAxis.set(1)
 
-    net.ikCtrlsAttr[0].worldMatrix[0].connect(net.ik_handles[0].dWorldUpMatrix)
-    net.ikCtrlsAttr[2].worldMatrix[0].connect(net.ik_handles[0].dWorldUpMatrixEnd)
+    net.ik_ctrls[0].worldMatrix[0].connect(net.ik_handles[0].dWorldUpMatrix)
+    net.ik_ctrls[2].worldMatrix[0].connect(net.ik_handles[0].dWorldUpMatrixEnd)
 
     net.ik_handles[0].dWorldUpAxis.set(3)
 
     net.ik_handles[0].dWorldUpVector.set(0, 0, 1)
     net.ik_handles[0].dWorldUpVectorEnd.set(0, 0, 1)
 
+
+
+
     # pymel.parentConstraint([mid_ctrl.object, chest_ctrl.object], skipRotate=('x', 'y', 'z'), maintainOffset=True)
 
     # pymel.mel.eval('ikHandle -sol ikSplineSolver -ccv false;')
 
 
-def build_ik_stretch(net=None):
-    pass
-
-
-def build_reverse_foot_rig(jnts=None, net=None):
+def build_reverse_foot_rig(net=None):
 
     assert isinstance(net, virtual_classes.LimbNode)
     #Set attrs
@@ -379,6 +387,15 @@ def build_reverse_foot_rig(jnts=None, net=None):
     foot_ik_ctrl.Ankle_Roll.connect(ankle_roll_grp.rotateX)
 
     pymel.parent(ankle_roll_grp, ankle_ik_grp)
+    print
+
+
+def build_clavicle(jnts, net=None):
+
+    ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, shape='Circle')
+    offset = joint_utils.create_offset_groups(ctrl, net=net)
+    pymel.parentConstraint([ctrl, jnts[0]])
+    print jnts, "CLAVICLE"
 
 
 def build_humanoid_rig():
@@ -407,34 +424,29 @@ def build_humanoid_rig():
         # Connect Joints
         for idx, jnt in enumerate(joint_utils.get_joint_chain(jnt_dict[key])):
             jnt.message.connect(net.jntsAttr[idx])
+            virtual_classes.attach_class(jnt, net)
 
     # Build Arms
     for net in pymel.ls(type=virtual_classes.LimbNode):
         if net.region == 'Arm':
-            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='Cube01')
+            build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='Cube01')
             pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
 
-
-    # Build Leg
+    # Build Legs
     for net in pymel.ls(type='network'):
         if net.region == 'Leg':
-            build_ikfk_limb(jnts=net.JOINTS.listConnections(), net=net, ik_shape='FootCube01')  # todo: add support for mirrored joints
-            # build_reverse_foot_rig(net=net)
-
-    # Build Reverse Foot
-    # for net in pymel.ls(type='network'):
-    #
-    #     foot_net = None
-    #     if net.region == 'Foot':
-    #         for leg_network in pymel.ls(type='network'):
-    #             if leg_network.side == net.side:
-    #                 foot_net = net
-    #         build_reverse_foot_rig(jnts=net.jnts, net=foot_net)
+            build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='FootCube01')  # todo: add support for mirrored joints
+            build_reverse_foot_rig(net=net)
 
     # Build IK Spline
-    # for net in pymel.ls(type='network'):
-    #     if net.region == 'Spine':
-    #         build_spine(net.jnts, net)
+    for net in pymel.ls(type='network'):
+        if net.region == 'Spine':
+            build_spine(jnts=net.jnts, net=net)
+
+    # Build Clavicle
+    for net in pymel.ls(type='network'):
+        if net.region == 'Clavicle':
+            build_clavicle(jnts=net.jnts, net=net)
 
 
 

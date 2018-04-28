@@ -48,11 +48,9 @@ def attach_class(node, net):
 
     log.warning('Could not find class for: '.format(node))
 
-
-
 class BaseNode():
     """
-    Subclass must also inherit leaf class with pymel.nodetype.dagnode as it's hierarchy. IE: pymel.nodetypes.Joint
+    Subclass must also inherit leaf class with pymel.nodetype.dagnode as it's hierarchy. IE: 'pymel.nodetypes.Joint'
     This class contains some basic properties that are used for accessing other nodes
     """
 
@@ -226,7 +224,6 @@ class TransformNode(BaseNode, pymel.nodetypes.Transform):
 
 
 class LimbNode(pymel.nodetypes.Network, BaseNode):
-    """ this is an example of how to create your own subdivisions of existing nodes. """
 
     @classmethod
     def list(cls, *args, **kwargs):

@@ -31,7 +31,8 @@ def create_ctrl(jnt=None,
     ctrl.freeze_transform()
 
     naming_utils.add_tags(ctrl, {'Network': network})
-    naming_utils.add_tags(ctrl, tags)
+    if tags:
+        naming_utils.add_tags(ctrl, tags)
 
     if jnt:
         ctrl.setMatrix(jnt.getMatrix(worldSpace=True), worldSpace=True)
