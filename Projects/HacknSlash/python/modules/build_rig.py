@@ -330,7 +330,9 @@ def build_reverse_foot_rig(net=None):
     foot_ik_ctrl = net.ik_ctrls[0]
     foot_ik_ctrl.addAttr('Ankle_Roll', at='float', keyable=True)
     foot_ik_ctrl.addAttr('Ball_Roll', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Ball_Twist', at='float', keyable=True)
     foot_ik_ctrl.addAttr('Toe_Roll', at='float', keyable=True)
+    foot_ik_ctrl.addAttr('Toe_Twist', at='float', keyable=True)
     foot_ik_ctrl.addAttr('Toe_Wiggle', at='float', keyable=True)
     foot_ik_ctrl.addAttr('Left_Bank', at='float', keyable=True)
     foot_ik_ctrl.addAttr('Right_Bank', at='float', keyable=True)
@@ -373,9 +375,14 @@ def build_reverse_foot_rig(net=None):
     # Toe Pivot
     toe_roll_grp = build_grp(name='ToeRoll', transform=net.jnts[4], children=[ball_roll_grp, toe_wiggle_grp], net=net)
     foot_ik_ctrl.Toe_Roll.connect(toe_roll_grp.rotateX)
+    foot_ik_ctrl.Toe_Twist.connect(toe_roll_grp.rotateY)
+
+    # Ball Twist
+    ball_twist_grp = build_grp(name='BallTwist', transform=net.jnts[3], children=[toe_roll_grp], net=net)
+    foot_ik_ctrl.Ball_Twist.connect(ball_twist_grp.rotateY)
 
     # Left Bank
-    left_bank_grp = build_grp(name='LeftBank', transform=net.jnts[3], children=[toe_roll_grp], net=net)
+    left_bank_grp = build_grp(name='LeftBank', transform=net.jnts[3], children=[ball_twist_grp], net=net)
     foot_ik_ctrl.Left_Bank.connect(left_bank_grp.rotateZ)
 
     # Right Bank
@@ -387,7 +394,6 @@ def build_reverse_foot_rig(net=None):
     foot_ik_ctrl.Ankle_Roll.connect(ankle_roll_grp.rotateX)
 
     pymel.parent(ankle_roll_grp, ankle_ik_grp)
-    print
 
 
 def build_clavicle(jnts, net=None):
