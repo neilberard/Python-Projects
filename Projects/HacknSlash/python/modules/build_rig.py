@@ -282,15 +282,15 @@ def build_spine(jnts, net=None):
         return ctrl
 
     # Pelvis CTRL
-    pelvis_ctrl = make_ctrl(net.jnts[1], children=net.clusters[0:2])
+    pelvis_ctrl = make_ctrl(net.jnts[1], children=net.clusters[0:2], shape='Oval')
     pelvis_ctrl.message.connect(net.ikCtrlsAttr[0])
 
     # Mid CTRL
-    mid_ctrl = make_ctrl(net.jnts[2], children=net.clusters[2:3], shape='Circle')
+    mid_ctrl = make_ctrl(net.jnts[2], children=net.clusters[2:3], shape='Oval')
     mid_ctrl.message.connect(net.ikCtrlsAttr[1])
 
     # Chest CTRL
-    chest_ctrl = make_ctrl(net.jnts[3], children=net.clusters[3:5], shape='Cube01')
+    chest_ctrl = make_ctrl(net.jnts[3], children=net.clusters[3:5], shape='Chest')
     chest_ctrl.message.connect(net.ikCtrlsAttr[2])
 
     # COG
@@ -404,7 +404,7 @@ def build_clavicle(jnts, net=None):
     print jnts, "CLAVICLE"
 
 
-def build_humanoid_rig():
+def build_humanoid_rig(mirror=True):
 
     jnt_dict = {}
     for jnt in pymel.ls(type='joint'):
@@ -416,11 +416,15 @@ def build_humanoid_rig():
         elif info.region:
             jnt_dict[key] = [jnt]
 
+    # Create Main
+    main = virtual_classes.MainNode()
+
     # Create Network Nodes
     for key in jnt_dict.keys():
         info = naming_utils.ItemInfo(key)
         if info.region == 'Spine':
             net = virtual_classes.SplineIKNet()
+            net.message.connect()
         else:
             net = virtual_classes.LimbNode()
 

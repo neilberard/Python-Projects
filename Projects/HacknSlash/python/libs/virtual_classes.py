@@ -328,6 +328,62 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
         return self.CLUSTER_HANDLE
 
 
+class MainNode(pymel.nodetypes.Network, BaseNode):
+    """ this is an example of how to create your own subdivisions of existing nodes. """
+
+    @classmethod
+    def list(cls, *args, **kwargs):
+        """ Returns all instances the node in the scene """
+
+        kwargs['type'] = cls.__melnode__
+        return [node for node in pymel.ls(*args, **kwargs) if isinstance(node, cls)]
+
+    @classmethod
+    def _isVirtual(cls, obj, name):
+        """PyMEL code should not be used inside the callback, only API and maya.cmds. """
+        fn = pymel.api.MFnDependencyNode(obj)
+        try:
+            if fn.hasAttribute('_class'):
+                plug = fn.findPlug('_class')
+                if plug.asString() == '_SplineIKNet':
+                    return True
+                return False
+        except:
+            pass
+        return False
+
+    @classmethod
+    def _preCreateVirtual(cls, **kwargs):
+        """This is called before creation. python allowed."""
+        return kwargs
+
+    @classmethod
+    def _postCreateVirtual(cls, newNode):
+        """ This is called before creation, pymel/cmds allowed."""
+        newNode.addAttr('_class', dataType='string')
+        newNode._class.set('_MainNode')
+        newNode.addAttr('ARMS', attributeType='message', multi=True)
+        newNode.addAttr('LEGS', attributeType='message', multi=True)
+        newNode.addAttr('SPINE', attributeType='message', multi=True)
+
+    @property
+    def network(self):
+        return self
+
+    @property
+    def arms(self):
+        return self.ARMS.connections()
+
+    @property
+    def legs(self):
+        return self.LEGS.connections()
+
+    @property
+    def spine(self):
+        return self.SPINE.connections()
+
+
+
 class CtrlNode(pymel.nodetypes.Transform, BaseNode):
 
     @classmethod
@@ -393,3 +449,5 @@ pymel.factories.registerVirtualClass(LimbNode, nameRequired=False)
 pymel.factories.registerVirtualClass(CtrlNode, nameRequired=False)
 pymel.factories.registerVirtualClass(TransformNode, nameRequired=False)
 pymel.factories.registerVirtualClass(SplineIKNet, nameRequired=False)
+pymel.factories.registerVirtualClass(MainNode, nameRequired=False)
+
