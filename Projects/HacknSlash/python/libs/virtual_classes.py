@@ -345,7 +345,7 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
         try:
             if fn.hasAttribute('_class'):
                 plug = fn.findPlug('_class')
-                if plug.asString() == '_SplineIKNet':
+                if plug.asString() == '_MainNode':
                     return True
                 return False
         except:
