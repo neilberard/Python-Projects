@@ -274,6 +274,7 @@ def create_offset_groups(objects, net=None, name=None):
         transform_matrix = transform.getMatrix(worldSpace=True)
 
         new_group = pymel.group(empty=True, name=grp_name)
+        new_group.rotateOrder.set(transform.rotateOrder.get())
         new_group.setMatrix(transform_matrix, worldSpace=True)
 
         if net:

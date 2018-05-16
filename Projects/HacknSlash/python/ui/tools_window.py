@@ -10,13 +10,18 @@ import pymel.core as pymel
 
 # Libs
 from python.interop.utils import attr_utils
-from python.libs import build_ctrls, joint_utils
+from python.libs import build_ctrls, joint_utils, pose_utils, ikfk_switch
 from python.ui import ctrl_builder_window
+from python.modules import build_rig
 
+
+reload(build_rig)
 reload(ctrl_builder_window)
 reload(attr_utils)
+reload(ikfk_switch)
 reload(build_ctrls)
 reload(joint_utils)
+reload(pose_utils)
 
 
 log = logging.getLogger(__name__)
@@ -68,6 +73,40 @@ class ToolsWindow(QtWidgets.QMainWindow, FormClass):
     def on_btn_make_switch_clicked(self):
         with pymel.UndoChunk():
             HS_IK.make_switch_utility(pymel.selected()[0])
+
+    @QtCore.Slot()
+    def on_btn_build_humanoid_clicked(self):
+        log.info('on_btn_build_humanoid_clicked')
+        build_rig.build_humanoid_rig(mirror=False)
+
+    @QtCore.Slot()
+    def on_btn_delete_all_ctrls_clicked(self):
+        log.info('on_btn_delete_all_ctrls_clicked')
+        build_rig.delete_rig()
+
+    @QtCore.Slot()
+    def on_btn_mirror_ctrls_clicked(self):
+        log.info('on_btn_mirror_ctrls_clicked')
+        for obj in pymel.selected():
+            pose_utils.mirror_pose(obj)
+
+    @QtCore.Slot()
+    def on_btn_reset_rig_clicked(self):
+        log.info('on_btn_reset_rig_clicked')
+        pose_utils.reset_rig()
+
+    @QtCore.Slot()
+    def on_btn_to_ik_clicked(self):
+        log.info('on_btn_to_ik_clicked')
+        ikfk_switch.switch_to_ik()
+
+    @QtCore.Slot()
+    def on_btn_to_fk_clicked(self):
+        log.info('on_btn_to_fk_clicked')
+        ikfk_switch.switch_to_fk()
+
+
+
 
 
 

@@ -76,7 +76,7 @@ def make_condition(name='placeholder', tags=None, firstTerm=0, secondTerm=1):
     return vis_con
 
 
-def build_annotation(pole, ik_joint, name='placeholder', net=None):
+def build_annotation(pole, ik_joint, tags=None, name='placeholder', net=None):
     """
     Draw a line from the pole vector ctrl to the ik joint for visual reference.
     :param pole: pole vector controller
@@ -90,24 +90,24 @@ def build_annotation(pole, ik_joint, name='placeholder', net=None):
     # Locator
     locator_name = naming_utils.concatenate([name, 'Loc'])
     locator = pymel.spaceLocator(name=locator_name, p=(0, 0, 0), a=True)
-    naming_utils.add_tags(locator, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get()})
+    naming_utils.add_tags(locator, tags=tags)
 
     # Point constrain Locator
     point_constraint_name = naming_utils.concatenate([name, 'PointConstraint', 'A'])
     point_constraint_a = pymel.pointConstraint(ik_joint, locator, mo=False, name=point_constraint_name)
-    naming_utils.add_tags(point_constraint_a, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get()})
+    naming_utils.add_tags(point_constraint_a, tags=tags)
 
     # Annotation
     anno_name = naming_utils.concatenate([name, 'Anno'])
     annotation = pymel.annotate(locator, tx='', p=(0, 0, 0))
     anno_parent = annotation.listRelatives(parent=True)[0]
     pymel.rename(anno_parent, anno_name)
-    naming_utils.add_tags(anno_parent, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get()})
+    naming_utils.add_tags(anno_parent, tags=tags)
 
     # Point constrain pole
     point_constraint_name = naming_utils.concatenate([name, 'PointConstraint', 'B'])
     point_constraint_b = pymel.pointConstraint(pole, anno_parent, maintainOffset=False, name=point_constraint_name)
-    naming_utils.add_tags(point_constraint_b, tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get()})
+    naming_utils.add_tags(point_constraint_b, tags=tags)
 
     return annotation, anno_parent, locator, point_constraint_a, point_constraint_b
 

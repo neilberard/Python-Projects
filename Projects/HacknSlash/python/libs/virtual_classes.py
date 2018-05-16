@@ -60,6 +60,10 @@ class BaseNode():
             return self.message.connections()[0]
 
     @property
+    def main(self):
+        return self.network.message.connections()[0]
+
+    @property
     def jnts(self):
         return self.network.JOINTS.connections()
 
@@ -345,7 +349,7 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
         try:
             if fn.hasAttribute('_class'):
                 plug = fn.findPlug('_class')
-                if plug.asString() == '_SplineIKNet':
+                if plug.asString() == '_MainNode':
                     return True
                 return False
         except:
