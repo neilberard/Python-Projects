@@ -60,6 +60,10 @@ class BaseNode():
             return self.message.connections()[0]
 
     @property
+    def main(self):
+        return self.network.message.connections()[0]
+
+    @property
     def jnts(self):
         return self.network.JOINTS.connections()
 

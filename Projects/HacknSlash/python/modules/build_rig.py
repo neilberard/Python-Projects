@@ -95,7 +95,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
                                               net.jnts[idx].name_info.index,
                                               'FK',
                                               'CTRL'])
-        ctrl_tags = {'Type': 'CTRL', 'Utility': 'FK'}
+        ctrl_tags = {'Type': 'CTRL', 'Utility': 'FK', 'Axis': 'XY'}  # todo: add support for alternate mirror axis
         log.info('Building FK CTRL for : {}'.format(fk_jnt))
         ctrl = build_ctrls.create_ctrl(jnt=fk_jnt, name=ctrl_name, network=net, tags=ctrl_tags, size=fk_size, shape=fk_shape, axis='z')
         ctrl.message.connect(net.FK_CTRLS[idx])
@@ -418,15 +418,30 @@ def build_humanoid_rig(mirror=True):
 
     # Create Main
     main = virtual_classes.MainNode()
+    pymel.rename(main, 'Main')
+    naming_utils.add_tags(main, tags={'Type': 'MAIN', 'Region': 'MAIN', 'Side': 'Center'})
 
     # Create Network Nodes
     for key in jnt_dict.keys():
+        print key, 'KEY'
         info = naming_utils.ItemInfo(key)
         if info.region == 'Spine':
             net = virtual_classes.SplineIKNet()
-            net.message.connect()
+            net.message.connect(main.SPINE[0])
+            print net, key
+            print 'SPINE'
+        elif info.region == 'Arm':
+            net = virtual_classes.LimbNode()
+            idx = main.ARMS.getNumElements()
+            net.message.connect(main.ARMS[idx])
+        elif info.region == 'Leg':
+            net = virtual_classes.LimbNode()
+            idx = main.LEGS.getNumElements()
+            net.message.connect(main.LEGS[idx])
+
         else:
             net = virtual_classes.LimbNode()
+
 
         pymel.rename(net, naming_utils.concatenate([key, 'Net']))
         naming_utils.add_tags(net, tags={'Type': 'IKFK', 'Region': info.region, 'Side': info.side})

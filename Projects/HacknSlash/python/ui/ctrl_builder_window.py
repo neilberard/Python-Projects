@@ -1,8 +1,7 @@
 # Imports
 from PySide2 import QtCore, QtWidgets
-from python.qt.qt import loadUiType
-from python.qt.qt\
-import QtCore, QtWidgets
+from python.qt.Qt import loadUiType
+from python.qt.Qt import QtCore, QtWidgets
 
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
@@ -102,6 +101,7 @@ class ControlBuilderWindow(QtWidgets.QMainWindow, FormClass):
     def closeEvent(self, *args):
         log.info('closing')
         self.ctrl_builder.delete_ctrls()
+
 
 def showUI():
     for widget in QtWidgets.QApplication.allWidgets():
