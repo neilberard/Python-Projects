@@ -122,7 +122,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     log.info('Building IK CTRLS: {}, {}'.format(ikhandle_name, type(ikhandle)))
     ik_handle_offset = joint_utils.create_offset_groups(ikhandle, net)
 
-
     # Ik Ctrl
     ik_ctrl_name = naming_utils.concatenate([net.Side.get(),
                                              jnts[2].name_info.base_name,
@@ -133,6 +132,9 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     ikctrl.rotate.set((0, 0, 0))
     ikctrl.setTranslation(net.jnts[2].getTranslation(worldSpace=True), worldSpace=True)
     virtual_classes.attach_class(ikctrl, net)
+    orient_constraint = pymel.orientConstraint(ikctrl, ik_handle_offset, maintainOffset=True)
+    naming_utils.add_tags(orient_constraint, {'Network': net.name(), 'Utility': 'IK'})
+
 
     # POLE Ctrl
     pos, rot = joint_utils.get_pole_position(fk_jnts)
@@ -196,7 +198,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     limb_grp = virtual_classes.attach_class(limb_grp, net)
     naming_utils.add_tags(limb_grp, {'Network': net.name()})
 
-    # Group
+    # Group Ctrl Rig
     for node in net.getCtrlRig():
         root = joint_utils.get_root(node)
         if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
