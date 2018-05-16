@@ -35,6 +35,7 @@ def create_ctrl(jnt=None,
         naming_utils.add_tags(ctrl, tags)
 
     if jnt:
+        ctrl.rotateOrder.set(jnt.rotateOrder.get())
         ctrl.setMatrix(jnt.getMatrix(worldSpace=True), worldSpace=True)
 
     ctrl.setScale((size, size, size))
