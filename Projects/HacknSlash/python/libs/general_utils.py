@@ -57,7 +57,7 @@ def make_switch_utility(switch, tags=None):
     return switch_utility
 
 
-def make_condition(name='placeholder', tags=None, firstTerm=0, secondTerm=1):
+def make_condition(name='placeholder', tags=None, net=None, firstTerm=0, secondTerm=1):
     """
     :param name:
     :param tags:
@@ -65,13 +65,17 @@ def make_condition(name='placeholder', tags=None, firstTerm=0, secondTerm=1):
     :param secondTerm: tuple/list of 3 floats/ints
     :return: shading utility condition
     """
-    log.info('*make_condition*')
 
     vis_con = pymel.shadingNode('condition', asUtility=True, name=name)
     vis_con.firstTerm.set(firstTerm)
     vis_con.secondTerm.set(secondTerm)
     vis_con.colorIfTrue.set([1, 1, 1])
     vis_con.colorIfFalse.set([0, 0, 0])
+
+    if net:
+        naming_utils.add_tags(vis_con, {'Network': net.name()})
+    if tags:
+        naming_utils.add_tags(vis_con, tags)
 
     return vis_con
 

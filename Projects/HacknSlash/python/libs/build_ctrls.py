@@ -22,17 +22,30 @@ def create_ctrl(jnt=None,
                 axis='z',
                 shape='Circle',
                 size=1.0,
-                name='ctrl'):
+                name=None,
+                offset=False,
+                mirrored=False):
+
+    if not name and jnt:
+        info = naming_utils.ItemInfo(jnt)
+        name = naming_utils.concatenate([info.base_name, info.joint_name, 'CTRL'])
+
+    elif not name:
+        name = 'Ctrl'
 
     ctrl = virtual_classes.CtrlNode()
     pymel.rename(ctrl, name)
     ctrl.set_shape(shape)
     ctrl.set_axis(axis)
+
+    if mirrored:
+        ctrl.setScale((-1, -1, 1))
     ctrl.freeze_transform()
 
-    naming_utils.add_tags(ctrl, {'Network': network})
     if tags:
         naming_utils.add_tags(ctrl, tags)
+    else:
+        naming_utils.add_tags(ctrl, {'Network': network, 'Type': 'CTRL'})
 
     if jnt:
         ctrl.rotateOrder.set(jnt.rotateOrder.get())
@@ -41,9 +54,9 @@ def create_ctrl(jnt=None,
     ctrl.setScale((size, size, size))
     pymel.makeIdentity(apply=True, scale=True)
 
+    if offset:
+        joint_utils.create_offset_groups(ctrl, name=naming_utils.concatenate([ctrl.name(), 'Offset']))
     return ctrl
-
-
 
 
 class CreateCtrl(object):

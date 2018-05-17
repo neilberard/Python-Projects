@@ -15,8 +15,6 @@ def attach_class(node, net):
     :param net: Network to associate the PyNode with IE: 'L_Leg_Net'
     :return: PyNode as a virtual class
     """
-    log.info([type(node), node])
-
     if node.hasAttr('_class'):
         node.deleteAttr('_class')
 
@@ -65,7 +63,10 @@ class BaseNode():
 
     @property
     def jnts(self):
-        return self.network.JOINTS.connections()
+        if self.hasAttr('JOINTS'):
+            return self.network.JOINTS.connections()
+        else:
+            return []
 
     @property
     def jntsAttr(self):
@@ -366,7 +367,9 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
         """ This is called before creation, pymel/cmds allowed."""
         newNode.addAttr('_class', dataType='string')
         newNode._class.set('_MainNode')
+        newNode.addAttr('MAIN_CTRL', attributeType='message', multi=True)
         newNode.addAttr('ARMS', attributeType='message', multi=True)
+        newNode.addAttr('CLAVICLES', attributeType='message', multi=True)
         newNode.addAttr('LEGS', attributeType='message', multi=True)
         newNode.addAttr('SPINE', attributeType='message', multi=True)
 
@@ -385,7 +388,6 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
     @property
     def spine(self):
         return self.SPINE.connections()
-
 
 
 class CtrlNode(pymel.nodetypes.Transform, BaseNode):

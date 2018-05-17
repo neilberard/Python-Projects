@@ -1,6 +1,6 @@
 //Maya ASCII 2017 scene
 //Name: buff_base_5.ma
-//Last modified: Wed, May 16, 2018 12:34:13 PM
+//Last modified: Wed, May 16, 2018 03:42:26 PM
 //Codeset: 1252
 requires maya "2017";
 requires -nodeType "HIKCharacterNode" -nodeType "HIKSkeletonGeneratorNode" -nodeType "HIKProperty2State"
@@ -19,8 +19,8 @@ fileInfo "osv" "Microsoft Windows 8 Home Premium Edition, 64-bit  (Build 9200)\n
 createNode transform -s -n "persp";
 	rename -uid "7D779CA1-401D-2B0E-0C5E-81B61A19217F";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" -166.15684670351493 362.22549008736581 347.82868774778342 ;
-	setAttr ".r" -type "double3" 2124.2947344049348 13280.999999999462 0 ;
+	setAttr ".t" -type "double3" 208.52876589779603 275.98002458146573 465.32969353314508 ;
+	setAttr ".r" -type "double3" 2141.6947344049272 13330.199999999453 -2.0197678792866578e-016 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "11025A09-4A86-E29B-9D93-DCA8C770D120";
 	setAttr -k off ".v" no;
@@ -6233,7 +6233,7 @@ createNode joint -n "R_Index_A" -p "R_Wrist";
 	setAttr ".r" -type "double3" -1.5505204072134644e-014 -3.2923710569837026e-016 1.1728295387896722e-014 ;
 	setAttr ".mnrl" -type "double3" -360 -360 -360 ;
 	setAttr ".mxrl" -type "double3" 360 360 360 ;
-	setAttr ".jo" -type "double3" 4.7170597571893591 -7.1329051634071172 -33.604975512528938 ;
+	setAttr ".jo" -type "double3" 4.7170597571893591 -7.1329051634071181 -33.604975512528938 ;
 	setAttr ".radi" 0.96551724137931039;
 	setAttr ".Network" -type "string" "R_Hand_Net";
 createNode joint -n "R_Index_B" -p "R_Index_A";
@@ -6437,6 +6437,103 @@ createNode joint -n "R_Toe" -p "R_Ball";
 	setAttr ".otp" -type "string" "Ankle";
 	setAttr ".radi" 4;
 	setAttr ".Network" -type "string" "R_Leg_Net";
+createNode joint -n "L_Hip" -p "Pelvis";
+	rename -uid "C34278AC-4257-89BC-7F2C-578366E8C1F2";
+	addAttr -ci true -k true -sn "twistAmount" -ln "twistAmount" -min 0 -max 1 -at "double";
+	addAttr -ci true -k true -sn "twistAddition" -ln "twistAddition" -at "double";
+	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "Network" -ln "Network" -dt "string";
+	setAttr ".uoc" 1;
+	setAttr ".oc" 5;
+	setAttr ".ove" yes;
+	setAttr ".t" -type "double3" 7.3481135733774181 27.285699999999903 3.4668698252232488 ;
+	setAttr ".ro" 2;
+	setAttr ".jo" -type "double3" -90.000000000000043 1.8427728153173253e-014 -1.8427728153173269e-014 ;
+	setAttr ".pa" -type "double3" 8.2466943253823241e-005 -3.4242188864638801e-005 3.9251253273287638e-005 ;
+	setAttr ".bps" -type "matrix" -0.46352065390684594 0.85134336702289581 -0.24568897986659685 0
+		 -0.12088191421634677 0.21392690046473212 0.96934144865106464 0 0.87780189463065172 0.47900913632588638 0.0037524790694401515 0
+		 18.533491889015774 53.33414451659214 -6.9207872120727023 1;
+	setAttr ".sd" 2;
+	setAttr ".typ" 2;
+	setAttr ".radi" 4;
+	setAttr -k on ".twistAmount" 0.25;
+	setAttr ".Network" -type "string" "R_Leg_Net";
+createNode joint -n "L_Knee" -p "L_Hip";
+	rename -uid "DBBE7446-4391-D079-7968-FEB8CF9BEE95";
+	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "Network" -ln "Network" -dt "string";
+	setAttr ".uoc" 1;
+	setAttr ".oc" 5;
+	setAttr ".ove" yes;
+	setAttr ".t" -type "double3" 42.840900000000005 0 9.9999999989108801e-005 ;
+	setAttr ".ro" 2;
+	setAttr ".jot" -type "string" "xzy";
+	setAttr ".jo" -type "double3" 0.00043010791149954484 -3.2287287362077384e-009 -1.2118847470776593e-014 ;
+	setAttr ".pa" -type "double3" -1.8709452395966328e-015 1.3102071433206383e-006 1.0610646120110837e-014 ;
+	setAttr ".bps" -type "matrix" 0.0083824742950232567 0.84385315739437716 0.53650869786074673 0
+		 0.27878722307333947 -0.51722642025298693 0.80916902711568028 0 0.9603163116264084 0.14278893146116467 -0.2395911156041256 0
+		 34.338554113663307 24.305153902343065 1.45667789259661 1;
+	setAttr ".sd" 1;
+	setAttr ".typ" 3;
+	setAttr ".radi" 4;
+	setAttr ".Network" -type "string" "R_Leg_Net";
+createNode joint -n "L_Ankle" -p "L_Knee";
+	rename -uid "AAD378CF-4C5A-77B4-7EF5-6ABC58CB4F98";
+	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "Network" -ln "Network" -dt "string";
+	setAttr ".uoc" 1;
+	setAttr ".oc" 5;
+	setAttr ".ove" yes;
+	setAttr ".t" -type "double3" 47.496300000000005 8.3744600035174415 0.00043713461039729395 ;
+	setAttr ".ro" 3;
+	setAttr ".jo" -type "double3" 6.9381914178801796e-005 3.551337280494426e-015 5.1458802141890824e-010 ;
+	setAttr ".pa" -type "double3" 0.00036346627503104748 0.00011411009528855545 -0.00022330481898349876 ;
+	setAttr ".bps" -type "matrix" 1.4479526022626032e-008 0.99999999999999678 -7.9464071378598775e-008 0
+		 -0.0003337929850134036 7.9468900286705502e-008 0.99999994429111694 0 0.99999994429111982 -1.4453000685143992e-008 0.00033379298501456933 0
+		 34.168751691130424 7.2113573281416388 -9.4112918023194219 1;
+	setAttr ".sd" 1;
+	setAttr ".typ" 18;
+	setAttr ".otp" -type "string" "Ankle";
+	setAttr ".radi" 4;
+	setAttr ".Network" -type "string" "R_Leg_Net";
+createNode joint -n "L_Ball" -p "L_Ankle";
+	rename -uid "3F59E5B3-40AC-AC33-4F16-9C8400B33CD1";
+	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "Network" -ln "Network" -dt "string";
+	setAttr ".uoc" 1;
+	setAttr ".oc" 5;
+	setAttr ".ove" yes;
+	setAttr ".t" -type "double3" 13.393399999999993 -15.961750006367657 -0.00066084958099921209 ;
+	setAttr ".ro" 3;
+	setAttr ".jo" -type "double3" -3.8684959445001885e-010 -0.001063423957785019 -89.999999999999986 ;
+	setAttr ".pa" -type "double3" 6.1313363384092246e-010 4.7117335659582628e-016 4.7492373343411589e-006 ;
+	setAttr ".bps" -type "matrix" 1.4479526022626032e-008 0.99999999999999678 -7.9464071378598775e-008 0
+		 -0.0003337929850134036 7.9468900286705502e-008 0.99999994429111694 0 0.99999994429111982 -1.4453000685143992e-008 0.00033379298501456933 0
+		 34.168751691130424 7.2113573281416388 -9.4112918023194219 1;
+	setAttr ".sd" 1;
+	setAttr ".typ" 18;
+	setAttr ".otp" -type "string" "Ankle";
+	setAttr ".radi" 4;
+	setAttr ".Network" -type "string" "R_Leg_Net";
+createNode joint -n "L_Toe" -p "L_Ball";
+	rename -uid "BD4816FD-48D8-F914-A2BF-3CB6CD91BD45";
+	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "Network" -ln "Network" -dt "string";
+	setAttr ".uoc" 1;
+	setAttr ".oc" 5;
+	setAttr ".ove" yes;
+	setAttr ".t" -type "double3" 14.006049990463323 0.59232999999999092 -0.0010378546503027053 ;
+	setAttr ".ro" 3;
+	setAttr ".jo" -type "double3" 6.5021463736182175e-006 -4.3922407467474367e-020 7.4422331597677696e-013 ;
+	setAttr ".pa" -type "double3" -1.3832552551007834e-009 4.0744763993512409e-017 1.687687796934554e-006 ;
+	setAttr ".bps" -type "matrix" 1.4479526022626032e-008 0.99999999999999678 -7.9464071378598775e-008 0
+		 -0.0003337929850134036 7.9468900286705502e-008 0.99999994429111694 0 0.99999994429111982 -1.4453000685143992e-008 0.00033379298501456933 0
+		 34.168751691130424 7.2113573281416388 -9.4112918023194219 1;
+	setAttr ".sd" 1;
+	setAttr ".typ" 18;
+	setAttr ".otp" -type "string" "Ankle";
+	setAttr ".radi" 4;
+	setAttr ".Network" -type "string" "R_Leg_Net";
 createNode transform -n "transform8";
 	rename -uid "A8E2FCE7-4FDC-C3E3-93C6-62A72F987F79";
 	setAttr ".hio" yes;
@@ -6479,18 +6576,18 @@ createNode camera -n "bottomShape" -p "bottom";
 	setAttr ".hc" -type "string" "viewSet -bo %camera";
 	setAttr ".o" yes;
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "19F5ADDE-4439-BB09-6DC9-FEAB6171729A";
+	rename -uid "0453AE4B-4381-F19F-ED57-30A373BF7796";
 	setAttr -s 3 ".lnk";
 	setAttr -s 3 ".slnk";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "FB5389DD-41A5-01EA-682B-8AB4DF2FCFAF";
+	rename -uid "F1B8A00C-43CA-7E49-A6DF-36AC40E17D81";
 	setAttr ".cdl" 5;
 	setAttr -s 6 ".dli[1:5]"  1 2 3 4 5;
 	setAttr -s 4 ".dli";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "1073490E-47E0-16D7-585A-269285FC99B4";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "F24D795A-44B3-0514-D83F-4C9CB315FC1E";
+	rename -uid "83851C97-4B3E-29DC-5207-F28A7471C260";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "8610A3B6-4E27-572D-A1CE-53AD06DF1E3A";
 	setAttr ".g" yes;
@@ -6521,9 +6618,9 @@ createNode displayLayer -n "Rig";
 	rename -uid "7F369B9D-4C84-1A33-6DEE-6A8700A8987D";
 	setAttr ".do" 2;
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "F7460A5B-4565-4F92-4094-909C3A32353B";
+	rename -uid "3704801A-4D5E-CA7F-530B-35824E718BF5";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "5BE5009E-4479-52B9-58EF-E389F370A7B7";
+	rename -uid "DB497C68-4ACC-8822-03D8-2E89E260194D";
 createNode HIKCharacterNode -n "Character1";
 	rename -uid "06400D38-40A7-1406-2A23-60B2456B0B50";
 	setAttr ".ReferenceMinRLimitx" -45;
@@ -9845,6 +9942,11 @@ connectAttr "R_Hip.s" "R_Knee.is";
 connectAttr "R_Knee.s" "R_Ankle.is";
 connectAttr "R_Ankle.s" "R_Ball.is";
 connectAttr "R_Ball.s" "R_Toe.is";
+connectAttr "Pelvis.s" "L_Hip.is";
+connectAttr "L_Hip.s" "L_Knee.is";
+connectAttr "L_Knee.s" "L_Ankle.is";
+connectAttr "L_Ankle.s" "L_Ball.is";
+connectAttr "L_Ball.s" "L_Toe.is";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "Box006SG1.message" ":defaultLightSet.message";

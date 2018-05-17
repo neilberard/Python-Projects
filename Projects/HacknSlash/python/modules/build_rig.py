@@ -96,7 +96,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
                                               'FK',
                                               'CTRL'])
         ctrl_tags = {'Type': 'CTRL', 'Utility': 'FK', 'Axis': 'XY'}  # todo: add support for alternate mirror axis
-        log.info('Building FK CTRL for : {}'.format(fk_jnt))
         ctrl = build_ctrls.create_ctrl(jnt=fk_jnt, name=ctrl_name, network=net, tags=ctrl_tags, size=fk_size, shape=fk_shape, axis='z')
         ctrl.message.connect(net.FK_CTRLS[idx])
 
@@ -134,7 +133,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     virtual_classes.attach_class(ikctrl, net)
     orient_constraint = pymel.orientConstraint(ikctrl, ik_handle_offset, maintainOffset=True)
     naming_utils.add_tags(orient_constraint, {'Network': net.name(), 'Utility': 'IK'})
-
 
     # POLE Ctrl
     pos, rot = joint_utils.get_pole_position(fk_jnts)
@@ -189,7 +187,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     orient_constraint = pymel.orientConstraint([net.jnts[2], ik_loc], maintainOffset=True)
     naming_utils.add_tags(orient_constraint, {'Network': net.name()})
 
-    log.info('Grouping CTRLS')
     # LimbGRP
     limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
     limb_grp = pymel.group(empty=True, name=limb_grp_name)
@@ -199,19 +196,18 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     naming_utils.add_tags(limb_grp, {'Network': net.name()})
 
     # Group Ctrl Rig
+    log.info('Grouping CTRLS')
     for node in net.getCtrlRig():
         root = joint_utils.get_root(node)
         if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
             root.setParent(limb_grp)
 
     # FK Vis Condition
-    fk_vis_condition = general_utils.make_condition(secondTerm=1.0)
-    naming_utils.add_tags(fk_vis_condition, tags={'Network': net.name()})
+    fk_vis_condition = general_utils.make_condition(secondTerm=1.0, net=net, name=naming_utils.concatenate([net.name(), 'VisCon', 'FK']))
     switch_util.output1D.connect(fk_vis_condition.firstTerm)
 
     # IK Vis Condition
-    ik_vis_condition = general_utils.make_condition(secondTerm=1.0)
-    naming_utils.add_tags(ik_vis_condition, tags={'Network': net.name()})
+    ik_vis_condition = general_utils.make_condition(secondTerm=1.0, net=net, name=naming_utils.concatenate([net.name(), 'VisCon', 'IK']))
     switch.IKFK.connect(ik_vis_condition.firstTerm)
 
     # Connect Visibility
@@ -219,7 +215,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
         if obj.hasAttr('Utility') and obj.Utility.get() == 'IK':
             ik_vis_condition.outColorR.connect(obj.visibility)
 
-        elif obj.hasAttr('Utility') and obj.Utility.get() == 'FK':
+        if obj.hasAttr('Utility') and obj.Utility.get() == 'FK':
             fk_vis_condition.outColorR.connect(obj.visibility)
 
 
@@ -275,7 +271,7 @@ def build_spine(jnts, net=None):
         name = naming_utils.concatenate([jnt.name_info.joint_name,
                                          jnt.name_info.index,
                                          'CTRL'])
-        ctrl = build_ctrls.create_ctrl(name=name, axis='y', shape=shape, network=net)
+        ctrl = build_ctrls.create_ctrl(name=name, axis='y', shape=shape, network=net, offset=False)
         ctrl.setTranslation(jnt.getTranslation(worldSpace=True))
 
         for cluster in children:
@@ -295,13 +291,15 @@ def build_spine(jnts, net=None):
     chest_ctrl.message.connect(net.ikCtrlsAttr[2])
 
     # COG
-    cog = build_ctrls.create_ctrl(jnt=net.jnts[1], network=net, shape='Circle', size=5)
+    cog = build_ctrls.create_ctrl(jnt=net.jnts[1], network=net, shape='Circle', size=5, name='COG', offset=False)
     chest_ctrl.message.connect(net.ikCtrlsAttr[3])
 
     chest_ctrl.setParent(mid_ctrl)
     mid_ctrl.setParent(cog)
     pelvis_ctrl.setParent(cog)
 
+    #Offsets
+    joint_utils.create_offset_groups([chest_ctrl, mid_ctrl, pelvis_ctrl, cog], net=net)
 
     # Ik Spline Twist
     net.ik_handles[0].dTwistControlEnable.set(1)
@@ -315,13 +313,6 @@ def build_spine(jnts, net=None):
 
     net.ik_handles[0].dWorldUpVector.set(0, 0, 1)
     net.ik_handles[0].dWorldUpVectorEnd.set(0, 0, 1)
-
-
-
-
-    # pymel.parentConstraint([mid_ctrl.object, chest_ctrl.object], skipRotate=('x', 'y', 'z'), maintainOffset=True)
-
-    # pymel.mel.eval('ikHandle -sol ikSplineSolver -ccv false;')
 
 
 def build_reverse_foot_rig(net=None):
@@ -401,10 +392,22 @@ def build_reverse_foot_rig(net=None):
 
 def build_clavicle(jnts, net=None):
 
-    ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, shape='Circle')
+    if net.side == 'L':
+        ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, shape='Clavicle', mirrored=True)
+    else:
+        ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, shape='Clavicle')
+
+
+    ctrl.message.connect(net.FK_CTRLS[0])
     offset = joint_utils.create_offset_groups(ctrl, net=net)
     pymel.parentConstraint([ctrl, jnts[0]])
-    print jnts, "CLAVICLE"
+
+
+def build_main(ctrl_size=15, net=None):
+
+    main_name = 'Main_CTRL'
+    main_ctrl = build_ctrls.create_ctrl(name=main_name, shape='Arrows01', size=ctrl_size, network=net, axis='Y')
+    main_ctrl.message.connect(net.MAIN_CTRL[0])
 
 
 def build_humanoid_rig(mirror=True):
@@ -421,18 +424,17 @@ def build_humanoid_rig(mirror=True):
 
     # Create Main
     main = virtual_classes.MainNode()
-    pymel.rename(main, 'Main')
+    pymel.rename(main, 'Main_Net')
     naming_utils.add_tags(main, tags={'Type': 'MAIN', 'Region': 'MAIN', 'Side': 'Center'})
 
     # Create Network Nodes
     for key in jnt_dict.keys():
-        print key, 'KEY'
+
         info = naming_utils.ItemInfo(key)
         if info.region == 'Spine':
             net = virtual_classes.SplineIKNet()
             net.message.connect(main.SPINE[0])
-            print net, key
-            print 'SPINE'
+
         elif info.region == 'Arm':
             net = virtual_classes.LimbNode()
             idx = main.ARMS.getNumElements()
@@ -442,6 +444,10 @@ def build_humanoid_rig(mirror=True):
             idx = main.LEGS.getNumElements()
             net.message.connect(main.LEGS[idx])
 
+        elif info.region == 'Clavicle':
+            net = virtual_classes.LimbNode()
+            idx = main.CLAVICLES.getNumElements()
+            net.message.connect(main.CLAVICLES[idx])
         else:
             net = virtual_classes.LimbNode()
 
@@ -453,8 +459,13 @@ def build_humanoid_rig(mirror=True):
             jnt.message.connect(net.jntsAttr[idx])
             virtual_classes.attach_class(jnt, net)
 
+    # Build Main
+    for net in pymel.ls(type='network'):
+        if net.region == 'MAIN':
+            build_main(net=net)
+
     # Build Arms
-    for net in pymel.ls(type=virtual_classes.LimbNode):
+    for net in pymel.ls(type='network'):
         if net.region == 'Arm':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='Cube01')
             pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
