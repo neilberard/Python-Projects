@@ -397,7 +397,6 @@ def build_clavicle(jnts, net=None):
     else:
         ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, shape='Clavicle')
 
-
     ctrl.message.connect(net.FK_CTRLS[0])
     offset = joint_utils.create_offset_groups(ctrl, net=net)
     pymel.parentConstraint([ctrl, jnts[0]])

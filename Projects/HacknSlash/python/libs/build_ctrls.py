@@ -28,7 +28,7 @@ def create_ctrl(jnt=None,
 
     if not name and jnt:
         info = naming_utils.ItemInfo(jnt)
-        name = naming_utils.concatenate([info.base_name, info.joint_name, 'CTRL'])
+        name = naming_utils.concatenate([info.side, info.base_name, info.joint_name, 'CTRL'])
 
     elif not name:
         name = 'Ctrl'
