@@ -18,6 +18,7 @@ log.setLevel(logging.DEBUG)
 
 def create_ctrl(jnt=None,
                 network=None,
+                attr=None,
                 tags=None,
                 axis='z',
                 shape='Circle',
@@ -44,8 +45,11 @@ def create_ctrl(jnt=None,
 
     if tags:
         naming_utils.add_tags(ctrl, tags)
-    else:
-        naming_utils.add_tags(ctrl, {'Network': network, 'Type': 'CTRL'})
+
+    if network:
+        naming_utils.add_tags(ctrl, {'Network': network})
+
+    naming_utils.add_tags(ctrl, {'Type': 'CTRL'})
 
     if jnt:
         ctrl.rotateOrder.set(jnt.rotateOrder.get())
@@ -56,6 +60,11 @@ def create_ctrl(jnt=None,
 
     if offset:
         joint_utils.create_offset_groups(ctrl, name=naming_utils.concatenate([ctrl.name(), 'Offset']))
+
+    if attr:
+        idx = attr.getNumElements()
+        ctrl.message.connect(attr[idx])
+
     return ctrl
 
 

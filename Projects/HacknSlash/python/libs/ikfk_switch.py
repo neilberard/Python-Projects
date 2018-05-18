@@ -39,6 +39,7 @@ def to_ik(net):
 
     # Set Constraint Weight
     switch.IKFK.set(1)
+    pymel.select(net.ik_ctrls[0])
 
 
 def to_fk(net):
@@ -56,6 +57,8 @@ def to_fk(net):
 
     for ctrl, matrix in zip(net.fk_ctrls, jnt_matrices):
         ctrl.setMatrix(matrix, worldSpace=True)
+
+    pymel.select(net.fk_ctrls[2])
 
 
 def switch_to_ik():

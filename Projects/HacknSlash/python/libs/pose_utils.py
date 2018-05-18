@@ -1,5 +1,6 @@
 import pymel.core as pymel
-from python.libs import virtual_classes
+from python.libs import virtual_classes, ikfk_switch
+reload(ikfk_switch)
 reload(virtual_classes)
 
 

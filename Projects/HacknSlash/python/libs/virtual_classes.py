@@ -319,6 +319,7 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('IK_HANDLE', attributeType='message', multi=True)
         newNode.addAttr('IK_CTRLS', attributeType='message', multi=True)
         newNode.addAttr('CLUSTER_HANDLE', attributeType='message', multi=True)
+        newNode.addAttr('COG', attributeType='message', multi=True)
 
     @property
     def network(self):
@@ -327,6 +328,10 @@ class SplineIKNet(pymel.nodetypes.Network, BaseNode):
     @property
     def clusters(self):
         return self.CLUSTER_HANDLE.connections()
+
+    @property
+    def cog(self):
+        return self.COG.connections()
 
     @property
     def clustersAttr(self):
@@ -384,6 +389,10 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
     @property
     def legs(self):
         return self.LEGS.connections()
+
+    @property
+    def clavicles(self):
+        return self.CLAVICLES.connections()
 
     @property
     def spine(self):
