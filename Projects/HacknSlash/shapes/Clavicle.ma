@@ -1,8 +1,9 @@
 //Maya ASCII 2017 scene
 //Name: Clavicle.ma
-//Last modified: Wed, May 16, 2018 08:22:11 PM
+//Last modified: Fri, May 18, 2018 07:57:18 AM
 //Codeset: 1252
 requires maya "2017";
+requires "stereoCamera" "10.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t ntsc;
 fileInfo "application" "maya";
@@ -10,24 +11,22 @@ fileInfo "product" "Maya 2017";
 fileInfo "version" "2017";
 fileInfo "cutIdentifier" "201608291545-1001872";
 fileInfo "osv" "Microsoft Windows 8 Home Premium Edition, 64-bit  (Build 9200)\n";
-createNode transform -n "Clavicle";
-	rename -uid "6722F907-4827-0D73-1052-8C841AB85B8E";
-createNode nurbsCurve -n "ClavicleShape" -p "Clavicle";
-	rename -uid "5D6F020A-4EE6-F203-9688-38A476241800";
+createNode transform -n "Clavicle1:Clavicle1";
+	rename -uid "7763A054-4C0A-9E64-0211-94962D396614";
+createNode nurbsCurve -n "Clavicle1:ClavicleShape1" -p "Clavicle1:Clavicle1";
+	rename -uid "2B84DF28-495E-0C96-3804-04B619ECDA01";
 	setAttr -k off ".v";
 	setAttr ".cc" -type "nurbsCurve" 
-		3 6 0 no 3
-		11 0 0 0 1 2 3 4 5 6 6 6
-		9
+		1 6 0 no 3
+		7 0 1 2 3 4 5 6
+		7
 		0 0 0
-		0 41.018507993606335 -9.1079384020545572e-015
-		0 41.018507993606335 -9.1079384020545572e-015
-		-3.6158246894494592 44.634332683055796 -9.9108127667015368e-015
-		-7.2316493788989185 44.634332683055796 -9.9108127667015368e-015
-		-12.575023557586483 46.162178121767717 -1.0250062603526836e-014
-		-12.575023557586483 35.874837865444945 -7.9658142005822764e-015
-		-3.6158246894494592 37.402683304156881 -8.3050640374075792e-015
-		0 37.402683304156881 -8.3050640374075792e-015
+		0 42.010397334189264 -9.3281820788136436e-015
+		-14.000000000000012 42.010397334189264 -9.3281820788136436e-015
+		-8.0000000000000071 46.010397334189264 -1.0216360498513769e-014
+		8.0000000000000071 46.010397334189264 -1.0216360498513769e-014
+		12.000000000000011 42.010397334189264 -9.3281820788136436e-015
+		0 42.010397334189264 -9.3281820788136436e-015
 		;
 select -ne :time1;
 	setAttr -av -k on ".cch";

@@ -377,10 +377,15 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('CLAVICLES', attributeType='message', multi=True)
         newNode.addAttr('LEGS', attributeType='message', multi=True)
         newNode.addAttr('SPINE', attributeType='message', multi=True)
+        newNode.addAttr('HEAD', attributeType='message', multi=True)
 
     @property
     def network(self):
         return self
+
+    @property
+    def main_ctrl(self):
+        return self.MAIN_CTRL.connections()
 
     @property
     def arms(self):

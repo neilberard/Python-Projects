@@ -42,6 +42,9 @@ class ItemInfo(object):
             elif name in consts.CLAVICLE:
                 self.joint_name = name
                 self.region = consts.ALL['Clavicle']
+            elif name in consts.Head:
+                self.joint_name = name
+                self.region = consts.ALL['Head']
             if name in consts.REGIONS:
                 self.region = name
 

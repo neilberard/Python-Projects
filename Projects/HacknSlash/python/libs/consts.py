@@ -3,7 +3,7 @@ ALL = {}
 
 
 #Base Names
-REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Spine', 'Clavicle']
+REGIONS = ['Arm', 'Foot', 'Hand', 'Leg', 'Spine', 'Clavicle', 'Head']
 
 ARM = ['Shoulder', 'Elbow', 'Wrist']
 
@@ -18,6 +18,8 @@ SIDE = ['L', 'R']
 SPINE = ['Pelvis', 'Spine', 'Chest']
 
 CLAVICLE = ['Clavicle']
+
+Head = ['Neck', 'Head', 'Jaw']
 
 # KEYS for item Tags.
 TAGS = ['Side', 'Region', 'Type', 'Utility']
@@ -47,6 +49,7 @@ ALL = {'Ankle': 'Ankle',
        'GRP': 'GRP',
        'HDL': 'HDL',
        'Hand': 'Hand',
+       'Head': 'Head',
        'Hip': 'Hip',
        'IK': 'IK',
        'IKFK': 'IKFK',

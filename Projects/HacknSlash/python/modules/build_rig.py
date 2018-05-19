@@ -392,6 +392,16 @@ def build_clavicle(jnts, net=None):
     pymel.parentConstraint([ctrl, jnts[0]])
 
 
+def build_head(jnts, net=None):
+    for jnt in jnts:
+        info = naming_utils.ItemInfo(jnt)
+
+        if info.joint_name == 'Head':
+            head_ctrl = build_ctrls.create_ctrl(jnt,shape='Cube01', attr=net.FK_CTRLS, network=net)
+
+    pass
+
+
 def build_main(ctrl_size=15, net=None):
     main_name = 'Main_CTRL'
     main_ctrl = build_ctrls.create_ctrl(name=main_name, shape='Arrows01', attr=net.MAIN_CTRL, size=ctrl_size, network=net, axis='Y')
@@ -401,16 +411,22 @@ def build_space_switching(main_net):
     chest_ctrl = main_net.spine[0].ik_ctrls[-1]
     pelvis_ctrl = main_net.spine[0].ik_ctrls[0]
 
+    main_ctrl = main_net.main_ctrl[0]
+
     # Clavicle - Arms
     for idx, clavicle in enumerate(main_net.clavicles):
 
-        arm_offset = main_net.arms[idx].fk_ctrls[0].getParent()
+        # Parent Constriant
+        arm_ctrl = main_net.arms[idx].fk_ctrls[0]
         ik_root = main_net.arms[idx].ik_jnts[0]
-
         clavicle_ctrl = clavicle.fk_ctrls[0]
-
-        pymel.parentConstraint([clavicle_ctrl, arm_offset], maintainOffset=True, skipRotate=('x', 'y', 'z'))
+        pymel.parentConstraint([clavicle_ctrl, arm_ctrl.getParent()], maintainOffset=True, skipRotate=('x', 'y', 'z'))
         pymel.parentConstraint([clavicle_ctrl, ik_root], maintainOffset=True, skipRotate=('x', 'y', 'z'))
+
+        # Add space switching
+        clavicle_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Head:Pelvis:Main", keyable=True)
+
+        # pymel.orientConstraint([main_ctrl, pelvis_ctrl, chest_ctrl, ])
 
         # Chest to Clavicle
         pymel.parentConstraint([chest_ctrl, clavicle_ctrl.getParent()], maintainOffset=True)
@@ -423,12 +439,6 @@ def build_space_switching(main_net):
         leg_offset = main_net.legs[idx].fk_ctrls[0].getParent()
         pymel.parentConstraint([pelvis_ctrl, leg_offset], maintainOffset=True, skipRotate=('x', 'y', 'z'))
         pymel.parentConstraint([pelvis_ctrl, ik_root], maintainOffset=True, skipRotate=('x', 'y', 'z'))
-
-
-
-
-
-
 
     pass
 
@@ -457,7 +467,6 @@ def build_humanoid_rig(mirror=True):
         if info.region == 'Spine':
             net = virtual_classes.SplineIKNet()
             net.message.connect(main.SPINE[0])
-
         elif info.region == 'Arm':
             net = virtual_classes.LimbNode()
             idx = main.ARMS.getNumElements()
@@ -466,11 +475,14 @@ def build_humanoid_rig(mirror=True):
             net = virtual_classes.LimbNode()
             idx = main.LEGS.getNumElements()
             net.message.connect(main.LEGS[idx])
-
         elif info.region == 'Clavicle':
             net = virtual_classes.LimbNode()
             idx = main.CLAVICLES.getNumElements()
             net.message.connect(main.CLAVICLES[idx])
+        elif info.region == 'Head':
+            net = virtual_classes.LimbNode()
+            idx = main.HEAD.getNumElements()
+            net.message.connect(main.HEAD[idx])
         else:
             net = virtual_classes.LimbNode()
 
@@ -508,6 +520,11 @@ def build_humanoid_rig(mirror=True):
     for net in pymel.ls(type='network'):
         if net.region == 'Clavicle':
             build_clavicle(jnts=net.jnts, net=net)
+
+    # Build Head
+    for net in pymel.ls(type='network'):
+        if net.region == 'Head':
+            build_head(jnts=net.jnts, net=net)
 
     # Build Space Switching
     build_space_switching(main_net=main)
