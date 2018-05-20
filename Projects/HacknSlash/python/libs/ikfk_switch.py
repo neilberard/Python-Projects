@@ -18,7 +18,7 @@ def to_ik(net):
 
         pos, rot = joint_utils.get_pole_position(net.IK_JOINTS.connections(), pole_dist=distance * 0.5)
         pole.setTranslation(pos, space='world')
-        pole.setRotation(rot, space='world')
+        pole.setRotation(rot, space='world')  # Todo: Investigate mirrored rotation on the IK CTRL
 
         return
 

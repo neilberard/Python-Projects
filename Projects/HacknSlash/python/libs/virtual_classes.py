@@ -403,6 +403,11 @@ class MainNode(pymel.nodetypes.Network, BaseNode):
     def spine(self):
         return self.SPINE.connections()
 
+    @property
+    def head(self):
+        return self.HEAD.connections()
+
+
 
 class CtrlNode(pymel.nodetypes.Transform, BaseNode):
 

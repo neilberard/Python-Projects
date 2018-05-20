@@ -17,7 +17,7 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-
+@general_utils.undo
 def delete_rig():
     for net in pymel.ls(type='network'):
         try:
@@ -143,9 +143,9 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
                                           net.jnts[2].name_info.side,
                                           'Pole',
                                           'CTRL'])
-    pole = build_ctrls.create_ctrl(name=pole_name, jnt=ik_jnts[2], network=net, shape=pole_shape, size=pole_size, tags={'Utility': 'IK'})
+    pole = build_ctrls.create_ctrl(name=pole_name, network=net, shape=pole_shape, size=pole_size, tags={'Utility': 'IK'})
     pole.setTranslation(pos, space='world')
-    pole.setRotation(rot)
+    # pole.setRotation(rot)
     pole.message.connect(net.POLE[0])
     joint_utils.create_offset_groups(pole, name='Offset', net=net)
     pymel.poleVectorConstraint(pole, ikhandle)
@@ -234,6 +234,9 @@ def build_spine(jnts, net=None):
     spine_curve = pymel.curve(p=points, degree=1)
     naming_utils.add_tags(spine_curve, {'Network': net.name()})
 
+
+
+    #Ik handle
     ikhandle, effector = pymel.ikHandle(startJoint=jnts[0],
                                         endEffector=jnts[-1],
                                         solver='ikSplineSolver',
@@ -304,6 +307,28 @@ def build_spine(jnts, net=None):
 
     net.ik_handles[0].dWorldUpVector.set(0, 0, 1)
     net.ik_handles[0].dWorldUpVectorEnd.set(0, 0, 1)
+
+
+    # Prevent double transforms on the spine curve
+    curve_offset_a = joint_utils.create_offset_groups(spine_curve, net=net)
+    curve_offset_b = joint_utils.create_offset_groups(curve_offset_a, net=net)
+    curve_offset_a[0].inheritsTransform.set(False)
+
+
+    # LimbGRP
+    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
+    limb_grp = pymel.group(empty=True, name=limb_grp_name)
+    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
+    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
+    limb_grp = virtual_classes.attach_class(limb_grp, net)
+    naming_utils.add_tags(limb_grp, {'Network': net.name()})
+
+    # Group Ctrl Rig
+    log.info('Grouping CTRLS')
+    for node in net.getCtrlRig():
+        root = joint_utils.get_root(node)
+        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
+            root.setParent(limb_grp)
 
 
 def build_reverse_foot_rig(net=None):
@@ -389,6 +414,7 @@ def build_clavicle(jnts, net=None):
         ctrl = build_ctrls.create_ctrl(jnt=jnts[0], network=net, attr=net.FK_CTRLS, shape='Clavicle')
 
     offset = joint_utils.create_offset_groups(ctrl, net=net)
+    naming_utils.add_tags(ctrl, {'Utility': 'FK', 'Axis': 'XY'})
     pymel.parentConstraint([ctrl, jnts[0]])
 
 
@@ -397,7 +423,12 @@ def build_head(jnts, net=None):
         info = naming_utils.ItemInfo(jnt)
 
         if info.joint_name == 'Head':
-            head_ctrl = build_ctrls.create_ctrl(jnt,shape='Cube01', attr=net.FK_CTRLS, network=net)
+            head_ctrl = build_ctrls.create_ctrl(jnt, shape='Cube01', size=2, attr=net.FK_CTRLS, network=net)
+            joint_utils.create_offset_groups(head_ctrl, net=net)
+
+        if info.joint_name == 'Neck':
+            neck_ctrl = build_ctrls.create_ctrl(jnt, attr=net.FK_CTRLS, network=net)
+            joint_utils.create_offset_groups(neck_ctrl, net=net)
 
     pass
 
@@ -410,7 +441,7 @@ def build_main(ctrl_size=15, net=None):
 def build_space_switching(main_net):
     chest_ctrl = main_net.spine[0].ik_ctrls[-1]
     pelvis_ctrl = main_net.spine[0].ik_ctrls[0]
-
+    head_ctrl = main_net.head[0].fk_ctrls[0]
     main_ctrl = main_net.main_ctrl[0]
 
     # Clavicle - Arms
@@ -423,13 +454,29 @@ def build_space_switching(main_net):
         pymel.parentConstraint([clavicle_ctrl, arm_ctrl.getParent()], maintainOffset=True, skipRotate=('x', 'y', 'z'))
         pymel.parentConstraint([clavicle_ctrl, ik_root], maintainOffset=True, skipRotate=('x', 'y', 'z'))
 
-        # Add space switching
-        clavicle_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Head:Pelvis:Main", keyable=True)
-
-        # pymel.orientConstraint([main_ctrl, pelvis_ctrl, chest_ctrl, ])
-
         # Chest to Clavicle
-        pymel.parentConstraint([chest_ctrl, clavicle_ctrl.getParent()], maintainOffset=True)
+        pymel.parentConstraint([chest_ctrl, clavicle_ctrl.getParent()], maintainOffset=True, skipRotate=('x', 'y', 'z'))
+
+        # Add space switching
+        clavicle_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Main:Head:Pelvis", keyable=True)
+        clav_orient = pymel.orientConstraint([chest_ctrl, main_ctrl, head_ctrl, pelvis_ctrl, clavicle_ctrl.getParent()], maintainOffset=True)
+
+        arm_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Main:Head:Pelvis", keyable=True)
+        arm_orient = pymel.orientConstraint([chest_ctrl, main_ctrl, head_ctrl, pelvis_ctrl, arm_ctrl.getParent()], maintainOffset=True)
+
+        # Conditions
+        conditions = ['Local', 'Main', 'Head', 'Pelvis']
+
+        def make_space_condition(ctrl, space, idx, orient):
+            space_condition = general_utils.make_condition(secondTerm=idx, net=main_net, name=naming_utils.concatenate([main_net.name(), 'SpaceCon', space]))
+            ctrl.Space.connect(space_condition.firstTerm)
+            attr = '{}{}{}'.format(orient, '.w', idx)
+            space_condition.outColorR.connect(attr)
+            return space_condition
+
+        for idx, space in enumerate(conditions):
+            make_space_condition(clavicle_ctrl, space, idx, clav_orient)
+            make_space_condition(arm_ctrl, space, idx, arm_orient)
 
     # Legs to Pelvis
     for idx, leg in enumerate(main_net.legs):
@@ -443,6 +490,7 @@ def build_space_switching(main_net):
     pass
 
 
+@general_utils.undo
 def build_humanoid_rig(mirror=True):
 
     jnt_dict = {}

@@ -6,6 +6,20 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
+def undo(func):
+    """Decorator to open an und chuck for the function passed in"""
+
+    def wrapper(*args, **kwargs):
+        pymel.undoInfo(openChunk=True)
+        try:
+            func(*args, **kwargs)
+        except Exception as ex:
+            log.warning(ex)
+        finally:
+            pymel.undoInfo(closeChunk=True)
+    return wrapper
+
+
 def make_switch_utility(switch, tags=None):
     """
     Create a 'plusMinusAverage' shading node to connect constraint weighting.
