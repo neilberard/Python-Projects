@@ -419,12 +419,40 @@ def build_clavicle(jnts, net=None):
 
 
 def build_head(jnts, net=None):
+
+    head_ctrl = None
+    neck_ctrl = None
+
     for jnt in jnts:
         info = naming_utils.ItemInfo(jnt)
 
         if info.joint_name == 'Head':
-            head_ctrl = build_ctrls.create_ctrl(jnt,shape='Cube01', attr=net.FK_CTRLS, network=net)
+            head_ctrl = build_ctrls.create_ctrl(jnt, shape='Cube01', size=2, attr=net.FK_CTRLS, network=net)
+            pymel.parentConstraint([head_ctrl, jnt])
 
+        elif info.joint_name == 'Neck':
+            neck_ctrl = build_ctrls.create_ctrl(jnt, size=2, attr=net.FK_CTRLS, network=net)
+            pymel.parentConstraint([neck_ctrl, jnt])
+
+    head_ctrl.setParent(neck_ctrl)
+
+    joint_utils.create_offset_groups(head_ctrl, net=net)
+    joint_utils.create_offset_groups(neck_ctrl, net=net)
+
+    # LimbGRP
+    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
+    limb_grp = pymel.group(empty=True, name=limb_grp_name)
+    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
+    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
+    limb_grp = virtual_classes.attach_class(limb_grp, net)
+    naming_utils.add_tags(limb_grp, {'Network': net.name()})
+
+    # Group Ctrl Rig
+    log.info('Grouping CTRLS')
+    for node in net.getCtrlRig():
+        root = joint_utils.get_root(node)
+        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
+            root.setParent(limb_grp)
     pass
 
 
@@ -436,7 +464,8 @@ def build_main(ctrl_size=15, net=None):
 def build_space_switching(main_net):
     chest_ctrl = main_net.spine[0].ik_ctrls[-1]
     pelvis_ctrl = main_net.spine[0].ik_ctrls[0]
-    head_ctrl = main_net.head[0].fk_ctrls[0]
+    head_ctrl = main_net.head[0].fk_ctrls[-1]
+    neck_ctrl = main_net.head[0].fk_ctrls[0]
     main_ctrl = main_net.main_ctrl[0]
 
     # Clavicle - Arms
@@ -452,9 +481,11 @@ def build_space_switching(main_net):
         # Add space switching
         clavicle_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Main:Head:Pelvis", keyable=True)
         clav_orient = pymel.orientConstraint([chest_ctrl, main_ctrl, head_ctrl, pelvis_ctrl, clavicle_ctrl.getParent()], maintainOffset=True)
+        clav_orient.interpType.set(1)
 
         arm_ctrl.addAttr('Space', attributeType='enum', enumName="Local:Main:Head:Pelvis", keyable=True)
         arm_orient = pymel.orientConstraint([chest_ctrl, main_ctrl, head_ctrl, pelvis_ctrl, arm_ctrl.getParent()], maintainOffset=True)
+        arm_orient.interpType.set(1)
 
         # Conditions
         conditions = ['Local', 'Main', 'Head', 'Pelvis']
@@ -470,7 +501,6 @@ def build_space_switching(main_net):
             make_space_condition(clavicle_ctrl, space, idx, clav_orient)
             make_space_condition(arm_ctrl, space, idx, arm_orient)
 
-
         # Chest to Clavicle
         pymel.parentConstraint([chest_ctrl, clavicle_ctrl.getParent()], maintainOffset=True, skipRotate=('x', 'y', 'z'))
 
@@ -482,6 +512,9 @@ def build_space_switching(main_net):
         leg_offset = main_net.legs[idx].fk_ctrls[0].getParent()
         pymel.parentConstraint([pelvis_ctrl, leg_offset], maintainOffset=True, skipRotate=('x', 'y', 'z'))
         pymel.parentConstraint([pelvis_ctrl, ik_root], maintainOffset=True, skipRotate=('x', 'y', 'z'))
+
+    # Head to Chest
+    pymel.parentConstraint([chest_ctrl, neck_ctrl.getParent()], maintainOffset=True)
 
     pass
 
