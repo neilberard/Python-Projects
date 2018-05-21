@@ -185,21 +185,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     orient_constraint = pymel.orientConstraint([net.jnts[2], ik_loc], maintainOffset=True)
     naming_utils.add_tags(orient_constraint, {'Network': net.name()})
 
-    # LimbGRP
-    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
-    limb_grp = pymel.group(empty=True, name=limb_grp_name)
-    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
-    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
-    limb_grp = virtual_classes.attach_class(limb_grp, net)
-    naming_utils.add_tags(limb_grp, {'Network': net.name()})
-
-    # Group Ctrl Rig
-    log.info('Grouping CTRLS')
-    for node in net.getCtrlRig():
-        root = joint_utils.get_root(node)
-        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
-            root.setParent(limb_grp)
-
     # FK Vis Condition
     fk_vis_condition = general_utils.make_condition(secondTerm=1.0, net=net, name=naming_utils.concatenate([net.name(), 'VisCon', 'FK']))
     switch_util.output1D.connect(fk_vis_condition.firstTerm)
@@ -315,22 +300,6 @@ def build_spine(jnts, net=None):
     curve_offset_a[0].inheritsTransform.set(False)
 
 
-    # LimbGRP
-    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
-    limb_grp = pymel.group(empty=True, name=limb_grp_name)
-    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
-    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
-    limb_grp = virtual_classes.attach_class(limb_grp, net)
-    naming_utils.add_tags(limb_grp, {'Network': net.name()})
-
-    # Group Ctrl Rig
-    log.info('Grouping CTRLS')
-    for node in net.getCtrlRig():
-        root = joint_utils.get_root(node)
-        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
-            root.setParent(limb_grp)
-
-
 def build_reverse_foot_rig(net=None):
 
     assert isinstance(net, virtual_classes.LimbNode)
@@ -439,22 +408,6 @@ def build_head(jnts, net=None):
     joint_utils.create_offset_groups(head_ctrl, net=net)
     joint_utils.create_offset_groups(neck_ctrl, net=net)
 
-    # LimbGRP
-    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
-    limb_grp = pymel.group(empty=True, name=limb_grp_name)
-    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
-    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
-    limb_grp = virtual_classes.attach_class(limb_grp, net)
-    naming_utils.add_tags(limb_grp, {'Network': net.name()})
-
-    # Group Ctrl Rig
-    log.info('Grouping CTRLS')
-    for node in net.getCtrlRig():
-        root = joint_utils.get_root(node)
-        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
-            root.setParent(limb_grp)
-    pass
-
 
 def build_main(ctrl_size=15, net=None):
     main_name = 'Main_CTRL'
@@ -462,6 +415,7 @@ def build_main(ctrl_size=15, net=None):
 
 
 def build_space_switching(main_net):
+
     chest_ctrl = main_net.spine[0].ik_ctrls[-1]
     pelvis_ctrl = main_net.spine[0].ik_ctrls[0]
     head_ctrl = main_net.head[0].fk_ctrls[-1]
@@ -517,6 +471,26 @@ def build_space_switching(main_net):
     pymel.parentConstraint([chest_ctrl, neck_ctrl.getParent()], maintainOffset=True)
 
     pass
+
+
+def group_limb(net):
+    # LimbGRP
+    limb_grp_name = naming_utils.concatenate([net.side, net.region, 'GRP'])
+    limb_grp = pymel.group(empty=True, name=limb_grp_name)
+    limb_grp.rotateOrder.set(net.jnts[0].rotateOrder.get())
+    limb_grp.setMatrix(net.jnts[0].getMatrix(worldSpace=True), worldSpace=True)
+    limb_grp = virtual_classes.attach_class(limb_grp, net)
+    naming_utils.add_tags(limb_grp, {'Network': net.name()})
+
+    # Group Ctrl Rig
+    log.info('Grouping CTRLS')
+    for node in net.getCtrlRig():
+        root = joint_utils.get_root(node)
+        if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
+            root.setParent(limb_grp)
+
+
+
 
 
 @general_utils.undo
@@ -581,27 +555,32 @@ def build_humanoid_rig(mirror=True):
         if net.region == 'Arm':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='Cube01')
             pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
+            group_limb(net)
 
     # Build Legs
     for net in pymel.ls(type='network'):
         if net.region == 'Leg':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='FootCube01')  # todo: add support for mirrored joints
             build_reverse_foot_rig(net=net)
+            group_limb(net)
 
     # Build IK Spline
     for net in pymel.ls(type='network'):
         if net.region == 'Spine':
             build_spine(jnts=net.jnts, net=net)
+            group_limb(net)
 
     # Build Clavicle
     for net in pymel.ls(type='network'):
         if net.region == 'Clavicle':
             build_clavicle(jnts=net.jnts, net=net)
+            group_limb(net)
 
     # Build Head
     for net in pymel.ls(type='network'):
         if net.region == 'Head':
             build_head(jnts=net.jnts, net=net)
+            group_limb(net)
 
     # Build Space Switching
     build_space_switching(main_net=main)
