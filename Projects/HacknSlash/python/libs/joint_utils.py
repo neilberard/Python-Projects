@@ -260,6 +260,7 @@ def create_offset_groups(objects, net=None, name=None):
                                                  info.joint_name,
                                                  info.utility,
                                                  info.index,
+                                                 info.type,
                                                  name])
 
         else:
@@ -268,6 +269,7 @@ def create_offset_groups(objects, net=None, name=None):
                                                  info.joint_name,
                                                  info.utility,
                                                  info.index,
+                                                 info.type,
                                                  consts.ALL['GRP']])
 
         transform_parent = transform.getParent()
