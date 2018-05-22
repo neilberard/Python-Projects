@@ -1,7 +1,7 @@
 @echo off
 
 set my_dir=%~dp0
-Echo.%my_dir% | Find "~" && ( echo bad dir ) || ( goto Write )
+Echo.%my_dir% | Find "~" && ( echo '---------------------------------' ) || ( goto Write )
 
 :Write
     echo %my_dir% > install_log.txt
@@ -33,20 +33,19 @@ if '%errorlevel%' NEQ '0' (
 
 FOR /F "tokens=* delims=" %%x in (install_log.txt) DO set logPath=%%x
 
-echo %logPath%
-
-echo %PYTHONPATH%
-
-Echo.%PYTHONPATH% | Find /I /C "%logPath%" && ( echo Path is stored & goto doNotSetPath) || ( echo path is not stored & goto setPythonPath)
+Echo.%PYTHONPATH% | Find /I /C "%logPath%" && ( goto doNotSetPath ) || ( goto setPythonPath )
 
 :setPythonPath
     echo setting path
     echo %logPath%
     setx PYTHONPATH %PYTHONPATH%;%logPath%
+    if exist "install_log.txt" ( del "install_log.txt" )
 
 :doNotSetPath
-    echo path is good
+    echo Project path already exists in PYTHONPATH, skipping.
+    if exist "install_log.txt" ( del "install_log.txt" )
 
+echo Project is successfully installed.
 pause
 
 
