@@ -1,9 +1,9 @@
 import pymel.core as pymel
 import os
 import re
-import definitions
+import siteCustomize
 
-shapes_dir = definitions.ROOT_DIR + '\\shapes'
+shapes_dir = siteCustomize.ROOT_DIR + '\\shapes'
 
 shape_files = os.listdir(shapes_dir)
 

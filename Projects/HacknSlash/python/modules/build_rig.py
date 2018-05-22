@@ -427,6 +427,8 @@ def build_space_switching(main_net):
 
         # Parent Constriant
         arm_ctrl = main_net.arms[idx].fk_ctrls[0]
+        ik_ctrl = main_net.arms[idx].ik_ctrls[0]
+        pole_ctrl = main_net.arms[idx].pole_ctrls[0]
         ik_root = main_net.arms[idx].ik_jnts[0]
         clavicle_ctrl = clavicle.fk_ctrls[0]
         pymel.parentConstraint([clavicle_ctrl, arm_ctrl.getParent()], maintainOffset=True, skipRotate=('x', 'y', 'z'))
@@ -489,8 +491,7 @@ def group_limb(net):
         if root and root != limb_grp and root not in net.jnts and root != 'JNT':  # Todo: Simplify this logic
             root.setParent(limb_grp)
 
-
-
+    return limb_grp
 
 
 @general_utils.undo
@@ -555,32 +556,37 @@ def build_humanoid_rig(mirror=True):
         if net.region == 'Arm':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='Cube01')
             pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
-            group_limb(net)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
 
     # Build Legs
     for net in pymel.ls(type='network'):
         if net.region == 'Leg':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='FootCube01')  # todo: add support for mirrored joints
             build_reverse_foot_rig(net=net)
-            group_limb(net)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
 
     # Build IK Spline
     for net in pymel.ls(type='network'):
         if net.region == 'Spine':
             build_spine(jnts=net.jnts, net=net)
-            group_limb(net)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
 
     # Build Clavicle
     for net in pymel.ls(type='network'):
         if net.region == 'Clavicle':
             build_clavicle(jnts=net.jnts, net=net)
-            group_limb(net)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
 
     # Build Head
     for net in pymel.ls(type='network'):
         if net.region == 'Head':
             build_head(jnts=net.jnts, net=net)
-            group_limb(net)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
 
     # Build Space Switching
     build_space_switching(main_net=main)

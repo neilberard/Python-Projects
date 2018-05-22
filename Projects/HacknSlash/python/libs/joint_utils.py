@@ -21,6 +21,7 @@ def get_distance(a, b):
 
     return om.MVector(vector_a-vector_b).length()
 
+
 def get_root(transform):
 
     for idx in range(1000):

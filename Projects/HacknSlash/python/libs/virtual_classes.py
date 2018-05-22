@@ -101,6 +101,10 @@ class BaseNode():
         return self.network.FK_CTRLS.connections()
 
     @property
+    def pole_ctrls(self):
+        return self.network.POLE.connections()
+
+    @property
     def fkCtrlsAttr(self):
         return self.network.FK_CTRLS
 
