@@ -155,8 +155,6 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
     annotation, anno_parent, locator, point_constraint_a, point_constraint_b = general_utils.build_annotation(pole, net.ik_jnts[1], tags={'Network': net.name(), 'Region': net.Region.get(), 'Side': net.Side.get(), 'Utility': 'IK'}, net=net, name=anno_name)
     for grp in [annotation, anno_parent, locator, point_constraint_a]:
         naming_utils.add_tags(grp, tags={'Network': net.name()})
-    annotation.message.connect(net.ANNO[0])
-    anno_parent.message.connect(net.ANNO[1])
 
     # Switch CTRL
     switch_name = naming_utils.concatenate([net.jnts[2].name_info.base_name, net.jnts[2].name_info.joint_name, 'IKFK', 'CTRL'])
@@ -174,7 +172,7 @@ def build_ikfk_limb(jnts, net=None, fk_size=2.0, fk_shape='Circle', ik_size=1.0,
         switch.IKFK.connect(point.w1)
         switch.IKFK.connect(orient.w1)
 
-    # IK Loc
+    # IK Snap Loc
     ik_loc = pymel.spaceLocator()
     ik_loc.message.connect(net.IK_SNAP_LOC[0])
     naming_utils.add_tags(ik_loc, {'Network': net.name(), 'Utility': 'IK'})
@@ -219,9 +217,7 @@ def build_spine(jnts, net=None):
     spine_curve = pymel.curve(p=points, degree=1)
     naming_utils.add_tags(spine_curve, {'Network': net.name()})
 
-
-
-    #Ik handle
+    # Ik handle
     ikhandle, effector = pymel.ikHandle(startJoint=jnts[0],
                                         endEffector=jnts[-1],
                                         solver='ikSplineSolver',
@@ -540,31 +536,37 @@ def build_humanoid_rig(mirror=True):
         if info.region == 'Spine':
             net = virtual_classes.SplineIKNet()
             net.message.connect(main.SPINE[0])
+
         elif info.region == 'Arm':
             net = virtual_classes.LimbNode()
             idx = main.ARMS.getNumElements()
             net.message.connect(main.ARMS[idx])
-        elif info.region == 'Leg':
-            net = virtual_classes.LimbNode()
-            idx = main.LEGS.getNumElements()
-            net.message.connect(main.LEGS[idx])
+
         elif info.region == 'Clavicle':
             net = virtual_classes.LimbNode()
             idx = main.CLAVICLES.getNumElements()
             net.message.connect(main.CLAVICLES[idx])
+
+        elif info.region == 'Leg':
+            net = virtual_classes.LimbNode()
+            idx = main.LEGS.getNumElements()
+            net.message.connect(main.LEGS[idx])
+
         elif info.region == 'Head':
             net = virtual_classes.LimbNode()
             idx = main.HEAD.getNumElements()
             net.message.connect(main.HEAD[idx])
         else:
             net = virtual_classes.LimbNode()
+        info = naming_utils.ItemInfo(key)
 
         pymel.rename(net, naming_utils.concatenate([key, 'Net']))
         naming_utils.add_tags(net, tags={'Type': 'IKFK', 'Region': info.region, 'Side': info.side})
 
         # Connect Joints
         for idx, jnt in enumerate(joint_utils.get_joint_chain(jnt_dict[key])):
-            jnt.message.connect(net.jntsAttr[idx])
+            elem_idx = net.jntsAttr.getNumElements()
+            jnt.message.connect(net.jntsAttr[elem_idx])
             virtual_classes.attach_class(jnt, net)
 
     # Build Main
@@ -577,6 +579,13 @@ def build_humanoid_rig(mirror=True):
         if net.region == 'Arm':
             build_ikfk_limb(jnts=net.jnts, net=net, ik_shape='Cube01')
             pymel.orientConstraint([net.ik_ctrls[0], net.ik_jnts[2]], maintainOffset=True)
+            grp = group_limb(net)
+            grp.setParent(main.main_ctrl[0])
+
+    # Build Clavicle
+    for net in pymel.ls(type='network'):
+        if net.region == 'Clavicle':
+            build_clavicle(jnts=net.jnts, net=net)
             grp = group_limb(net)
             grp.setParent(main.main_ctrl[0])
 
@@ -595,13 +604,6 @@ def build_humanoid_rig(mirror=True):
             grp = group_limb(net)
             grp.setParent(main.main_ctrl[0])
 
-    # Build Clavicle
-    for net in pymel.ls(type='network'):
-        if net.region == 'Clavicle':
-            build_clavicle(jnts=net.jnts, net=net)
-            grp = group_limb(net)
-            grp.setParent(main.main_ctrl[0])
-
     # Build Head
     for net in pymel.ls(type='network'):
         if net.region == 'Head':
@@ -611,11 +613,6 @@ def build_humanoid_rig(mirror=True):
 
     # Build Space Switching
     build_space_switching(main_net=main)
-
-
-
-
-
 
 """TEST CODE"""
 

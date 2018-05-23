@@ -62,6 +62,10 @@ class BaseNode():
         return self.network.message.connections()[0]
 
     @property
+    def mainAttr(self):
+        return self.network.message.connections(plugs=True)[0]
+
+    @property
     def jnts(self):
         if self.hasAttr('JOINTS'):
             return self.network.JOINTS.connections()
@@ -270,8 +274,8 @@ class LimbNode(pymel.nodetypes.Network, BaseNode):
         newNode.addAttr('FK_JOINTS', attributeType='message', multi=True)
         newNode.addAttr('IK_CTRLS', attributeType='message', multi=True)
         newNode.addAttr('FK_CTRLS', attributeType='message', multi=True)
+        newNode.addAttr('CTRLS', attributeType='message', multi=True)
         newNode.addAttr('POLE', attributeType='message', multi=True)
-        newNode.addAttr('ANNO', attributeType='message', multi=True)
         newNode.addAttr('SWITCH', attributeType='message', multi=True)
         newNode.addAttr('ORIENTCONSTRAINT', attributeType='message', multi=True)
         newNode.addAttr('POINTCONSTRAINT', attributeType='message', multi=True)

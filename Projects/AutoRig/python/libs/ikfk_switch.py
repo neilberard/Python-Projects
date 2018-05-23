@@ -6,7 +6,15 @@ reload(joint_utils)
 reload(virtual_classes)
 
 
-def to_ik(net):
+def to_ik(net, select=True):
+
+    # Special case for Clavicle since it is not connected to the arm network.
+    if net.region == 'Clavicle':
+        attr = net.mainAttr
+        new_net = net.main.arms[attr.index()]
+        net = new_net
+        select = False
+
     switch = net.SWITCH.connections()[0]
 
     # Get Switch weight
@@ -39,10 +47,19 @@ def to_ik(net):
 
     # Set Constraint Weight
     switch.IKFK.set(1)
-    pymel.select(net.ik_ctrls[0])
+
+    if select:
+        pymel.select(net.ik_ctrls[0])
 
 
-def to_fk(net):
+def to_fk(net, select=True):
+
+    # Special case for Clavicle since it is not connected to the arm network.
+    if net.region == 'Clavicle':
+        attr = net.mainAttr
+        new_net = net.main.arms[attr.index()]
+        net = new_net
+        select = False
 
     # Set Constraint Weight
     switch = net.SWITCH.connections()[0]
@@ -58,7 +75,8 @@ def to_fk(net):
     for ctrl, matrix in zip(net.fk_ctrls, jnt_matrices):
         ctrl.setMatrix(matrix, worldSpace=True)
 
-    pymel.select(net.fk_ctrls[2])
+    if select:
+        pymel.select(net.fk_ctrls[2])
 
 
 def switch_to_ik():
