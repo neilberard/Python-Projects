@@ -128,9 +128,9 @@ def showUI():
 #     win.show()
 #     app.exec_()
 
-#C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\HacknSlash\python\ui\tools_window.py
+#C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\AutoRig\python\ui\tools_window.py
 
-# from Projects.HacknSlash.python.ui import tools_window
+# from Projects.AutoRig.python.ui import tools_window
 # tools_window.showUI()
 
 # reload(tools_window_ui)

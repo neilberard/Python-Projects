@@ -121,9 +121,9 @@ test code.
 # app.exec_()
 
 
-# C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\HacknSlash\python\ui\rename_tools_window.py
+# C:\Program Files\Autodesk\Maya2017\bin\mayapy E:\Python_Projects\Projects\AutoRig\python\ui\rename_tools_window.py
 
-# from Projects.HacknSlash.python.ui import rename_tools_window
+# from Projects.AutoRig.python.ui import rename_tools_window
 # reload(rename_tools_window)
 # win = rename_tools_window.ToolsWindow()
 # win.show()

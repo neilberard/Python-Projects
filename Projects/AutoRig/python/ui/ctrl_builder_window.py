@@ -119,7 +119,7 @@ def showUI():
 test code.
 """
 
-# from Projects.HacknSlash.python.ui import ct
+# from Projects.AutoRig.python.ui import ct
 # rl_builder_window
 # reload(ctrl_builder_window)
 
