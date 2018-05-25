@@ -92,12 +92,12 @@ class MyVirtualSubNode(MyVirtualNode):
         """PyMEL code should not be used inside the callback, only API and maya.cmds. """
         fn = pm.api.MFnDependencyNode(obj)
         try:
-            if fn.hasAttribute('myString'):
+            if fn.hasAttribute('myString'):  # Attribute name. IE "_class"
                 plug = fn.findPlug('myString')
-                if plug.asString() == 'virtualNode':
-                    if fn.hasAttribute('mySubNodeType'):
+                if plug.asString() == 'virtualNode':  # Checking if the node name matches
+                    if fn.hasAttribute('mySubNodeType'):  # Subclass Attr
                         plug = fn.findPlug('mySubNodeType')
-                        if plug.asString() == cls.SUBNODE_TYPE:
+                        if plug.asString() == cls.SUBNODE_TYPE:  # Check if the subclass matches IE '_clavicle'
                             return True
                     return False
         except:
