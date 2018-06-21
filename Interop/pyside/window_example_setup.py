@@ -54,7 +54,7 @@ class MainWindowUIC(QtWidgets.QMainWindow):
 
 
 class MainWindow_UI_LOADER(QtWidgets.QMainWindow):
-    """Using Pyside Built-in UI loader"""
+    """Using Pyside Built-in ui loader"""
 
     def __init__(self):
         # mainUI = SCRIPT_LOC + "/templateUI/demoOne.ui"
@@ -71,7 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):  # USING PYSIDE_DYNAMIC
     def __init__(self):
         maya_main = wrapInstance(long(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)  # GET MAIN MAYA WINDOW
         super(MainWindow, self).__init__(maya_main)  # PARENT INSTANCE TO MAYA WINDOW
-        self.ui = ui_loader.loadUi(ui_file_name, baseinstance=self)  # LOAD UI AND PARENT UI TO THIS INSTANCE
+        self.ui = ui_loader.loadUi(ui_file_name, baseinstance=self)  # LOAD ui AND PARENT ui TO THIS INSTANCE
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)  # DELETE WINDOW ON CLOSE
 
     # @QtCore.Slot()

@@ -122,15 +122,15 @@ def loadUi(uifile, baseinstance=None, customWidgets=None,
     """
     Dynamically load a user interface from the given ``uifile``.
 
-    ``uifile`` is a string containing a file name of the UI file to load.
+    ``uifile`` is a string containing a file name of the ui file to load.
 
     If ``baseinstance`` is ``None``, the a new instance of the top-level widget
     will be created.  Otherwise, the user interface is created within the given
     ``baseinstance``.  In this case ``baseinstance`` must be an instance of the
-    top-level widget class in the UI file to load, or a subclass thereof.  In
+    top-level widget class in the ui file to load, or a subclass thereof.  In
     other words, if you've created a ``QMainWindow`` interface in the designer,
     ``baseinstance`` must be a ``QMainWindow`` or a subclass thereof, too.  You
-    cannot load a ``QMainWindow`` UI file with a plain
+    cannot load a ``QMainWindow`` ui file with a plain
     :class:`~PySide.QtGui.QWidget` as ``baseinstance``.
 
     ``customWidgets`` is a dictionary mapping from class name to class object

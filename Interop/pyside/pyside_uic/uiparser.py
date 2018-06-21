@@ -865,7 +865,7 @@ class UIParser(object):
 
         document = parse(filename)
         version = document.getroot().attrib["version"]
-        DEBUG("UI version is %s" % (version,))
+        DEBUG("ui version is %s" % (version,))
         # Right now, only version 4.0 is supported.
         assert version in ("4.0",)
         for tagname, actor in branchHandlers:
