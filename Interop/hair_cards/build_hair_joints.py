@@ -79,7 +79,8 @@ if __name__ == '__main__':
     pymel.select(None)
 
     for obj in sel:
-        build_card_joint_chain(obj)
+        hair_joints = build_card_joint_chain(obj)
+        pymel.skinCluster(obj, hair_joints, tsb=True, mi=2, omi=True, dr=10, bm=1)
         pymel.select(None)
 
     pymel.select(sel)
