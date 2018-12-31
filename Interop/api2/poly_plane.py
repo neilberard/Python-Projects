@@ -1,19 +1,19 @@
 import maya.api.OpenMaya as om2
 import maya.cmds as cmds
 
-uDivs = 1
-vDivs = 1
 
-
-indices = []
-value = 0
-
-def create_plane(uDivs=3, vDivs=3):
+def create_plane(uDivs=4, vDivs=100, curveName=None):
     """
     :param uDivs: faces width, min 1
     :param vDivs: faces height, min 1
     :return: plane
     """
+    if not curveName:
+        return
+
+    selList = om2.MGlobal.getSelectionListByName('curve1')
+    mfnCurve = om2.MFnNurbsCurve(selList.getDagPath(0))
+
 
     num_faces = uDivs * vDivs
 
@@ -21,9 +21,8 @@ def create_plane(uDivs=3, vDivs=3):
     vertices = []
 
     u_increment = 1.0
-    v_increment = 1.0
+    v_increment = mfnCurve.length() / vDivs
 
-    name_value = 0
 
     for v in range(vDivs + 1):
 
@@ -32,11 +31,15 @@ def create_plane(uDivs=3, vDivs=3):
             u_pos = u_increment * u
             v_pos = v_increment * v * -1.0
 
-            name = "loc_{}".format(name_value)
-            name_value += 1
-            vertices.append(om2.MPoint(u_pos, 0.0, v_pos, 0.0))
+            #================================================
+            # Curve Param
+            #================================================
+            v_len = v_increment * v
+            v_param = mfnCurve.findParamFromLength(v_len)
+            v_curve_pos = mfnCurve.getPointAtParam(v_param)
 
-            # cmds.spaceLocator(position=(u_pos, 0.0, v_pos), name=name)
+            vertices.append(om2.MPoint(u_pos + v_curve_pos.x, 0.0, v_curve_pos.z, 0.0))
+
 
     poly_connects = []
     start = 0
@@ -55,30 +58,15 @@ def create_plane(uDivs=3, vDivs=3):
 
     mesh = om2.MFnMesh()
 
-    mesh.create(vertices, poly_counts, poly_connects)
+    plane = mesh.create(vertices, poly_counts, poly_connects)
 
 
     print poly_connects
 
-create_plane()
+
+create_plane(curveName='curve1')
 
 
 
-#
-#
-# poly_counts = [4, 4]
-#
-# vertices = [om2.MPoint(0, 0, 0, 0),
-#           om2.MPoint(1.0, 0, 0, 0),
-#           om2.MPoint(0, 1.0, 0, 0),
-#           om2.MPoint(1.0, 1.0, 0, 0),
-#           om2.MPoint(0, 2.0, 0, 0),
-#           om2.MPoint(1.0, 2.0, 0, 0)]
-#
-# poly_connects = [0, 1, 3, 2,
-#                  2, 3, 5, 4]
-#
-# mesh = om2.MFnMesh()
-#
-# mesh.create(vertices, poly_counts, poly_connects)
+
 
