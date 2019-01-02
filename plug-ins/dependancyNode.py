@@ -12,7 +12,7 @@ class curveMesh(OpenMayaMpx.MPxNode):
     def createMesh(self):
         pass
 
-    def compute(self):
+    def compute(self, plug, data):
         pass
 
 def nodeCreator():

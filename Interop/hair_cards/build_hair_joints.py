@@ -42,21 +42,21 @@ def build_card_joint_chain(card):
         if uv_list[0][1] == idx[1]:
             column_count += 1
 
-    # Need logic for multiple rows,
-    row_length = len(uv_list) / column_count
-    offset_length = row_length * (column_count - 1)
+    # Logic for multiple columns, organize the UV list based on columns and in iterate through the 1st and last
+    column_length = len(uv_list) / column_count
+    offset_length = column_length * (column_count - 1)
 
     hair_joints = []
 
-    for i in range(row_length):
+    for i in range(column_length):
         c = uv_list[i][2].getPosition(space='world')
         a = uv_list[i + offset_length][2].getPosition(space='world')
 
-        # If at the end of the list, get previous pos instead and reverse Y vector.
-        if i + 2 > row_length:
+        # If at the end of the list, get previous pos instead and flip YZ
+        if i + 2 > column_length:
             b = uv_list[i - 1][2].getPosition(space='world')
             matrix = build_matrix(a, b, c)
-            matrix[1:3] *= -1
+            matrix[1:3] *= -1  # flip YZ
 
         else:
             b = uv_list[i + 1][2].getPosition(space='world')
@@ -72,8 +72,7 @@ def build_card_joint_chain(card):
 
     return hair_joints
 
-
-# Example use
+# Example Use
 if __name__ == '__main__':
     sel = pymel.selected()
     pymel.select(None)

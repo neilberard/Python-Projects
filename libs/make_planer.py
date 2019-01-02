@@ -8,11 +8,15 @@ log.setLevel(logging.DEBUG)
 
 
 """
-Using reset vertex position to store previous vertex position in an Undo step
+Using reset vertex position plugin to store previous vertex position in an Undo step.
+If unable to the load the plugin, script will not be undoable.
 """
+undoable = False
+
 try:
     if not pymel.pluginInfo('reset_vertex_position.py', query=True, loaded=True):
         pymel.loadPlugin('reset_vertex_position.py')
+    undoable = True
 except Exception as ex:
     log.error('Could not load reset_vertex_position.py')
     pass
@@ -49,9 +53,10 @@ def get_components():
     orig_sel_type = get_select_type()
 
     # Set UNDO point
-    pymel.select(mesh)
-    pymel.reset_vertex_position()
-    pymel.select(orig_sel)
+    if undoable:
+        pymel.select(mesh)
+        pymel.reset_vertex_position()
+        pymel.select(orig_sel)
 
     # Get Vertices
     pymel.mel.eval('ConvertSelectionToVertices')
@@ -93,21 +98,17 @@ def get_manipulator_orientation():
     # Set manipulator to 'Component'
     pymel.manipMoveContext('Move', edit=True, mode=9)
 
-
     # Get manipulator Orientation
     orientation = pymel.manipMoveContext('Move', query=True, orientAxes=True)
-    print orientation
+
 
     loc = pymel.spaceLocator(name='orientation')
     loc.setRotation([pymel.util.degrees(orientation[0]), pymel.util.degrees(orientation[1]), pymel.util.degrees(orientation[2])])
-    print loc.getRotation()
 
     # Get X normal
     values = loc.getMatrix()[0][0:3]
-    # print values
-
-
     pymel.delete(loc)
+
     pymel.manipMoveContext('Move', edit=True, mode=orig_mode)
 
     return OpenMaya.MVector(values[0], values[1], values[2])
@@ -137,9 +138,6 @@ def get_plane_normal(average_pos, vertices):
         if dot < 0:
 
             normal = vector_b ^ vector_a
-            dot = normal * first_normal
-
-        final_pos = average_pos + normal
 
         average_normal += normal
 
@@ -148,11 +146,6 @@ def get_plane_normal(average_pos, vertices):
 
     average_normal.normalize()
 
-    # final_pos = average_pos + average_normal
-
-    # loc = pymel.spaceLocator(name='normal')
-    # loc.setTranslation((final_pos.x, final_pos.y, final_pos.z), space='world')
-    # loc.setScale((.2, .2, .2))
 
     return average_normal
 
@@ -160,7 +153,7 @@ def get_plane_normal(average_pos, vertices):
 def project_vertex(mode='Manipulator Pivot', x=None, y=None, z=None):
     """
     Will get a plane normal based on mode and project(flatten) vertices to that plane.
-    :param mode: How the plane orientation is determined.
+    :param mode: How the plane orientation is determined. IE 'Calculate Plane', 'Manipulator Pivot'
     :param x: Planer set to X axis
     :param y: Planer set to Y axis
     :param z: Planer set to Z axis
